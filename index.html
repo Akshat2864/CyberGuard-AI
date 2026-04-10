@@ -1,0 +1,379 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PhishShield AI — URL & Email Threat Detector</title>
+<link rel="stylesheet" href="styles.css">
+
+</head>
+<body>
+
+<nav>
+  <a class="logo" href="#">
+    <div class="logo-icon">
+      <svg viewBox="0 0 24 24"><path d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4zm-2 16l-4-4 1.41-1.41L10 14.17l6.59-6.59L18 9l-8 8z"/></svg>
+    </div>
+    PhishShield AI
+  </a>
+  <div class="nav-links">
+    <a href="#">Features</a>
+    <a href="#">How it Works</a>
+    <a href="#">API Access</a>
+    <a href="#" class="btn-nav">Sign Up</a>
+  </div>
+</nav>
+
+<div class="login-page">
+  <div class="login-card">
+    <h2>PhishShield AI</h2>
+    <p class="subtitle">Secure Login</p>
+
+    <input id="email" type="email" placeholder="Email">
+    <input id="password" type="password" placeholder="Password">
+
+    <button id="loginBtn">Login</button>
+    <button id="signupBtn" class="secondary">Create Account</button>
+
+    <p id="authStatus"></p>
+  </div>
+</div>
+
+<div id="dashboard" style="display:none;">
+  
+  <div class="topbar">
+    <span id="userEmail"></span>
+    <button onclick="logoutUser()">Logout</button>
+  </div>
+
+  <div class="dashboard-container">
+    
+    <div class="left">
+      <h3>🔍 Scan URL</h3>
+      <input id="urlInput" placeholder="Enter URL">
+      <button id="analyzeBtn">Analyze</button>
+    </div>
+
+    <div class="right">
+      <h3>📜 History</h3>
+      <div id="historyList"></div>
+    </div>
+
+  </div>
+</div>
+
+<section class="hero">
+  <h1>Is that link safe? Check instantly with advanced threat detection.</h1>
+  <p>Our AI-powered engine analyzes URLs and emails for phishing attempts, malware distribution, and known malicious sites. Protect yourself and your organization.</p>
+
+  <div class="tab-bar">
+    <button class="tab-btn active" onclick="switchTab('url', this)">
+      <svg viewBox="0 0 24 24"><path d="M3.9 12c0-1.71 1.39-3.1 3.1-3.1h4V7H7c-2.76 0-5 2.24-5 5s2.24 5 5 5h4v-1.9H7c-1.71 0-3.1-1.39-3.1-3.1zM8 13h8v-2H8v2zm9-6h-4v1.9h4c1.71 0 3.1 1.39 3.1 3.1s-1.39 3.1-3.1 3.1h-4V17h4c2.76 0 5-2.24 5-5s-2.24-5-5-5z"/></svg>
+      URL Scanner
+    </button>
+    <button class="tab-btn" onclick="switchTab('email', this)">
+      <svg viewBox="0 0 24 24"><path d="M20 4H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 4l-8 5-8-5V6l8 5 8-5v2z"/></svg>
+      Email Validator
+    </button>
+    <button class="tab-btn" onclick="switchTab('phishing', this)">
+      <svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z"/></svg>
+      Phishing Check
+    </button>
+  </div>
+
+  <div class="search-wrap">
+    <input type="text" id="urlInput" placeholder="Paste your suspicious URL here..." />
+    <button id="analyzeBtn">
+      <svg viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27A6.471 6.471 0 0 0 16 9.5 6.5 6.5 0 1 0 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/></svg>
+      Analyze
+    </button>
+  </div>
+  <p class="hero-note">
+    <svg viewBox="0 0 24 24"><path d="M18 8h-1V6c0-2.76-2.24-5-5-5S7 3.24 7 6v2H6c-1.1 0-2 .9-2 2v10c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V10c0-1.1-.9-2-2-2zm-6 9c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2zm3.1-9H8.9V6c0-1.71 1.39-3.1 3.1-3.1 1.71 0 3.1 1.39 3.1 3.1v2z"/></svg>
+    Your scans are anonymous and confidential.
+  </p>
+</section>
+
+<main>
+  <div class="spinner" id="spinner"></div>
+  <div id="result-section"></div>
+
+  <div class="section-title">How PhishShield Protects You</div>
+  <p class="section-sub">Three powerful detection layers working together in real time.</p>
+
+  <div class="features-grid">
+    <div class="feature-card">
+      <div class="feature-icon">
+        <svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 14.5v-9l6 4.5-6 4.5z"/></svg>
+      </div>
+      <h3>Real-time URL Analysis</h3>
+      <p>Instantly scans any link for phishing patterns, typosquatting, suspicious redirects, and malware distribution markers.</p>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon">
+        <svg viewBox="0 0 24 24"><path d="M20 4H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 4l-8 5-8-5V6l8 5 8-5v2z"/></svg>
+      </div>
+      <h3>Email Validation</h3>
+      <p>Detects spoofed senders, suspicious domains, and known phishing email patterns before you click any embedded link.</p>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon">
+        <svg viewBox="0 0 24 24"><path d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4z"/></svg>
+      </div>
+      <h3>Phishing Detection</h3>
+      <p>AI-powered heuristics identify credential harvesting pages, fake login forms, and social engineering attempts.</p>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon">
+        <svg viewBox="0 0 24 24"><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-7 3c1.93 0 3.5 1.57 3.5 3.5S13.93 13 12 13s-3.5-1.57-3.5-3.5S10.07 6 12 6zm7 13H5v-.23c0-.62.28-1.2.76-1.58C7.47 15.82 9.64 15 12 15s4.53.82 6.24 2.19c.48.38.76.97.76 1.58V19z"/></svg>
+      </div>
+      <h3>Threat Scoring</h3>
+      <p>Each scan returns a risk score, confidence level, and categorized threat types so you always understand exactly what was found.</p>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon">
+        <svg viewBox="0 0 24 24"><path d="M20 6h-2.18c.07-.44.18-.88.18-1.34C18 2.54 16.45 1 14.5 1c-1.14 0-2.18.48-2.94 1.25L11 3.75l-.56-.5C9.68 2.48 8.64 2 7.5 2 5.55 2 4 3.54 4 5.5c0 .46.1.89.17 1.32H2v13h20V6zm-8.5 11.5l-5.5-5.25L7.42 10.8l4.08 3.92 8.08-8L21 8l-9.5 9.5z"/></svg>
+      </div>
+      <h3>Malware Detection</h3>
+      <p>Flags URLs pointing to executable files, suspicious downloads, and known malware hosting infrastructure.</p>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon">
+        <svg viewBox="0 0 24 24"><path d="M9 17H7v-7h2v7zm4 0h-2V7h2v10zm4 0h-2v-4h2v4zm2 2H5V5h14v14zm0-16H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2z"/></svg>
+      </div>
+      <h3>Scan History & Analytics</h3>
+      <p>Review past scans, track threat trends, and monitor your organization's exposure through a clean dashboard.</p>
+    </div>
+  </div>
+</main>
+
+<footer>
+  &copy; 2026 <span>PhishShield AI</span> — All rights reserved. | Privacy Policy | Terms of Service
+</footer>
+
+<script type="module">
+  import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm";
+
+const supabase = createClient(
+  "https://rdabdvyvqsyxliyovzat.supabase.co",
+  "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJkYWJkdnl2cXN5eGxpeW92emF0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzU3MzQ1MTksImV4cCI6MjA5MTMxMDUxOX0.hP7W99ZSilz1bR6daSGtyC29elcmpGw0hVvNR3c7GsE"
+);
+  const API = "http://127.0.0.1:5000";
+  let currentTab = 'url';
+
+  async function loginUser() {
+  const email = document.getElementById("email").value.trim();
+  const password = document.getElementById("password").value.trim();
+
+  const { data, error } = await supabase.auth.signInWithPassword({
+    email,
+    password
+  });
+
+  if (error) {
+    document.getElementById("authStatus").innerText = error.message;
+  } else {
+    document.querySelector(".login-page").style.display = "none";
+    document.getElementById("dashboard").style.display = "block";
+
+    document.getElementById("userEmail").innerText =
+      data.user.email;
+
+    loadHistory();
+  }
+}
+
+async function logoutUser() {
+  await supabase.auth.signOut();
+
+  document.getElementById("dashboard").style.display = "none";
+  document.querySelector(".login-page").style.display = "flex";
+}
+
+async function loadHistory() {
+  const { data } = await supabase.auth.getUser();
+  const user_id = data.user.id;
+
+  const res = await fetch("http://127.0.0.1:5000/history", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ user_id })
+  });
+
+  const history = await res.json();
+
+  const container = document.getElementById("historyList");
+  container.innerHTML = "";
+
+  history.forEach(item => {
+    const div = document.createElement("div");
+    div.innerText = `${item.url} → ${item.result}`;
+    container.appendChild(div);
+  });
+}
+
+async function signupUser() {
+  const email = document.getElementById("email").value.trim();
+  const password = document.getElementById("password").value.trim();
+  const status = document.getElementById("authStatus");
+
+  const { error } = await supabase.auth.signUp({
+    email: email,
+    password: password
+  });
+
+  console.log("SIGNUP ERROR:", error);
+
+  status.innerText = error ? error.message : "Account created ✅";
+}
+
+
+  function switchTab(tab, btn) {
+    currentTab = tab;
+    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    const input = document.getElementById('urlInput');
+    if (tab === 'url') input.placeholder = 'Paste your suspicious URL here...';
+    else if (tab === 'email') input.placeholder = 'Enter a suspicious email address or domain...';
+    else input.placeholder = 'Paste a suspicious link or message to check for phishing...';
+  }
+
+  async function analyzeURL() {
+  const url = document.getElementById('urlInput').value.trim();
+
+  if (!url) {
+    alert('Please enter a URL or value to analyze.');
+    return;
+  }
+
+  const spinner = document.getElementById('spinner');
+  const section = document.getElementById('result-section');
+
+  section.style.display = 'none';
+  spinner.style.display = 'block';
+
+  try {
+    const endpoint = '/analyze';
+
+    // ✅ GET USER BEFORE FETCH
+    const { data } = await supabase.auth.getUser();
+    const user_id = data.user ? data.user.id : "anonymous";
+
+    // ✅ CORRECT FETCH
+    const res = await fetch(API + endpoint, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        url: url,
+        user_id: user_id
+      })
+    });
+
+    const dataResponse = await res.json();
+
+    spinner.style.display = 'none';
+    renderResult(dataResponse);
+
+  } catch (e) {
+    console.error(e);
+    spinner.style.display = 'none';
+    section.style.display = 'block';
+
+    section.innerHTML = `
+      <div style="background:#fff;border-radius:14px;border:1px solid #ffd6a0;padding:1.5rem;text-align:center;color:#e65100;">
+        <strong>Could not connect to the API.</strong><br>
+        <span style="font-size:13px;color:#888;">Make sure your Flask server is running on port 5000.</span>
+      </div>`;
+  }
+}
+
+
+  function renderResult(data) {
+    const section = document.getElementById('result-section');
+    section.style.display = 'block';
+
+    const cls = (data.result || 'safe').toLowerCase();
+    const maxScore = 10;
+    const pct = Math.min(100, Math.round((data.risk_score / maxScore) * 100));
+
+    const iconPaths = {
+      safe: '<path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 14.5v-9l6 4.5-6 4.5z"/>',
+      suspicious: '<path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z"/>',
+      malicious: '<path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z"/>'
+    };
+
+    const labels = { safe: 'Safe', suspicious: 'Suspicious', malicious: 'Malicious' };
+
+    const threats = (data.threat_type || ['None']).filter(t => t !== 'None');
+    const tagsHtml = threats.length
+      ? threats.map(t => `<span class="tag threat">${t}</span>`).join('')
+      : `<span class="tag none">No Threats Detected</span>`;
+
+    const reasons = data.reasons || ['No major threats detected'];
+    const explanations = data.explanations || [];
+    const reasonDotCls = cls === 'malicious' ? 'malicious' : cls === 'safe' ? 'none' : '';
+    const reasonsHtml = reasons.map(r =>
+      `<div class="reason-item"><div class="reason-dot ${reasonDotCls}"></div><span>${r}</span></div>`
+    ).join('');
+    const explanationsHtml = explanations.map(e =>
+    `<div class="reason-item"><div class="reason-dot"></div><span>${e}</span></div>`
+    ).join('');
+
+    section.innerHTML = `
+      <div class="result-card">
+        <div class="result-header">
+          <div class="result-icon ${cls}">
+            <svg viewBox="0 0 24 24">${iconPaths[cls] || iconPaths.safe}</svg>
+          </div>
+          <div>
+            <div class="result-title ${cls}">${labels[cls] || data.result}</div>
+            <div class="result-url">${data.url}</div>
+          </div>
+        </div>
+        <div class="result-body">
+          <div class="metrics-row">
+            <div class="metric-card">
+              <div class="metric-label">Risk Score</div>
+              <div class="metric-value">${data.risk_score}<span class="metric-unit"> / 10</span></div>
+            </div>
+            <div class="metric-card">
+              <div class="metric-label">Confidence</div>
+              <div class="metric-value">${data.confidence}<span class="metric-unit">%</span></div>
+            </div>
+            <div class="metric-card">
+              <div class="metric-label">Threat Types</div>
+              <div class="metric-value">${threats.length || 0}</div>
+            </div>
+          </div>
+          <div class="score-bar-wrap">
+            <div class="score-bar-label"><span>Risk Level</span><span>${pct}%</span></div>
+            <div class="score-bar-track">
+              <div class="score-bar-fill ${cls}" style="width: ${pct}%"></div>
+            </div>
+          </div>
+          <div class="tags-row">${tagsHtml}</div>
+          <div class="reasons-section">
+            <div class="reasons-title">Analysis Details</div>
+            ${reasonsHtml}
+          </div>
+          <div class="reasons-section">
+        <div class="reasons-section" style="margin-top:15px;">
+        <div class="reasons-title">Detailed Explanation</div>
+        ${explanationsHtml}
+        </div>
+        </div>
+      </div>`;
+
+    section.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }
+
+  document.getElementById('urlInput').addEventListener('keydown', e => {
+    if (e.key === 'Enter') analyzeURL();
+  });
+  document.getElementById("analyzeBtn")
+  .addEventListener("click", analyzeURL);
+  document.getElementById("loginBtn").addEventListener("click", loginUser);
+  document.getElementById("signupBtn").addEventListener("click", signupUser);
+</script>
+</body>
+</html>
