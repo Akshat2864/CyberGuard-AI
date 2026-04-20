@@ -1508,7 +1508,17 @@ const CookieConsent = () => {
 
 function App() {
   const [user, setUser] = useState(null);
+  const [runtimeError, setRuntimeError] = useState(null);
   
+  useEffect(() => {
+    const catchError = (e) => {
+      console.error("Runtime Crash:", e);
+      setRuntimeError(e.message || "Unknown error component crash.");
+    };
+    window.addEventListener('error', catchError);
+    return () => window.removeEventListener('error', catchError);
+  }, []);
+
   const login = (userData) => setUser(userData);
   const logout = () => setUser(null);
 
@@ -1519,15 +1529,24 @@ function App() {
         <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', position: 'relative', zIndex: 10, pointerEvents: 'auto' }}>
           <Navbar />
           <main style={{ flex: 1, padding: '2rem' }}>
-            <AnimatePresence mode='wait'>
-              <Routes>
-                <Route path="/" element={<Home />} />
-                <Route path="/login" element={<Login />} />
-                <Route path="/dashboard" element={<Dashboard />} />
-                <Route path="/privacy" element={<PrivacyPolicy />} />
-                <Route path="/terms" element={<TermsOfService />} />
-              </Routes>
-            </AnimatePresence>
+            {runtimeError ? (
+              <div style={{ padding: '4rem', textAlign: 'center', background: 'rgba(239, 68, 68, 0.1)', border: '1px solid var(--accent-red)', borderRadius: '12px' }}>
+                <ShieldAlert size={48} color="var(--accent-red)" style={{ margin: '0 auto 1.5rem' }} />
+                <h2 style={{ color: 'white' }}>System Shield Engaged</h2>
+                <p style={{ opacity: 0.6, maxWidth: '400px', margin: '1rem auto' }}> A sub-system has crashed. We've isolated the fault. Error: {runtimeError}</p>
+                <button onClick={() => window.location.reload()} className="btn-primary">Restart Grid</button>
+              </div>
+            ) : (
+              <AnimatePresence mode='wait'>
+                <Routes>
+                  <Route path="/" element={<Home />} />
+                  <Route path="/login" element={<Login />} />
+                  <Route path="/dashboard" element={<Dashboard />} />
+                  <Route path="/privacy" element={<PrivacyPolicy />} />
+                  <Route path="/terms" element={<TermsOfService />} />
+                </Routes>
+              </AnimatePresence>
+            )}
           </main>
           <Footer />
         </div>
