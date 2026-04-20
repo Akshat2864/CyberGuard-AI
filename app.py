@@ -172,7 +172,7 @@ import math
 from collections import Counter
 
 # 🧪 Forensic Helpers
-@lru_cache(max_size=2048)
+@lru_cache(maxsize=2048)
 def calculate_entropy(text):
     """Calculates Shannon Entropy to detect DGA (Random) domains."""
     if not text: return 0
