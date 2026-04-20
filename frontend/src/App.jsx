@@ -1,6 +1,6 @@
 import React, { useState, useEffect, createContext, useContext } from 'react'
 import { BrowserRouter as Router, Routes, Route, Link, useLocation, useNavigate } from 'react-router-dom'
-import { ShieldAlert, Activity, LayoutDashboard, KeyRound, ArrowRight, Mail, MessageSquare, AlertTriangle, Globe, Server, CheckCircle, XCircle, Search, LogOut, ShieldCheck, Zap, BarChart3, Fingerprint, Loader } from 'lucide-react'
+import { ShieldAlert, Activity, LayoutDashboard, KeyRound, ArrowRight, Mail, MessageSquare, AlertTriangle, Globe, Server, CheckCircle, XCircle, Search, LogOut, ShieldCheck, Zap, BarChart3, Fingerprint, Loader, CloudOff } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { PieChart, Pie, Cell, Tooltip as RechartsTooltip, ResponsiveContainer, AreaChart, Area, XAxis, YAxis, CartesianGrid, Legend } from 'recharts'
 import { ComposableMap, Geographies, Geography } from "react-simple-maps"
@@ -136,13 +136,11 @@ const Dashboard = () => {
   const fetchAnalytics = async () => {
     try {
       const response = await fetch(`${API_BASE_URL}/analytics`);
+      if (!response.ok) return;
       const data = await response.json();
-      setAnalytics(data);
+      if (data) setAnalytics(data);
     } catch (error) {
       console.error('Error fetching analytics:', error);
-      if (error.message === 'Failed to fetch' || !navigator.onLine) {
-        setIsSystemOffline(true);
-      }
     }
   };
 
@@ -150,24 +148,26 @@ const Dashboard = () => {
     setIsDataLoading(true);
     try {
       const response = await fetch(`${API_BASE_URL}/history`);
+      if (!response.ok) throw new Error("API_OFFLINE");
       const data = await response.json();
-      const sliced = data.slice(0, 20) || [];
+      
+      const historyList = Array.isArray(data) ? data : [];
+      const sliced = historyList.slice(0, 20);
       setHistoryData(sliced);
-      // Build time-series from history for the threat graph
+
       const grouped = {};
       sliced.forEach(entry => {
+        if (!entry) return;
         const t = entry.created_at ? new Date(entry.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : 'Now';
         if (!grouped[t]) grouped[t] = { time: t, Safe: 0, Suspicious: 0, Malicious: 0 };
-        if (entry.result === 'Safe') grouped[t].Safe++;
-        else if (entry.result === 'Suspicious') grouped[t].Suspicious++;
-        else if (entry.result === 'Malicious') grouped[t].Malicious++;
+        const res = entry.result || 'Safe';
+        if (grouped[t].hasOwnProperty(res)) grouped[t][res]++;
       });
-      setThreatHistory(Object.values(grouped));
+      setThreatHistory(Object.values(grouped).reverse());
+      setIsSystemOffline(false);
     } catch (error) {
       console.error('Error fetching history:', error);
-      if (error.message === 'Failed to fetch' || !navigator.onLine) {
-        setIsSystemOffline(true);
-      }
+      setIsSystemOffline(true);
     } finally {
       setIsDataLoading(false);
     }
@@ -1516,7 +1516,7 @@ function App() {
     <AuthContext.Provider value={{ user, login, logout }}>
       <Router>
         <InteractiveBackground />
-        <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', position: 'relative', zIndex: 10, pointerEvents: 'none' }}>
+        <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', position: 'relative', zIndex: 10, pointerEvents: 'auto' }}>
           <Navbar />
           <main style={{ flex: 1, padding: '2rem' }}>
             <AnimatePresence mode='wait'>
