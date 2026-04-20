@@ -168,9 +168,6 @@ def validate_url(url):
     return True, "Valid"
 
 
-import math
-from collections import Counter
-
 # 🧪 Forensic Helpers
 @lru_cache(maxsize=2048)
 def calculate_entropy(text):
