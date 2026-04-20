@@ -48,6 +48,17 @@ const useAuth = () => useContext(AuthContext);
 // Interactive Map Background Component
 const InteractiveBackground = () => {
   const [mousePos, setMousePos] = useState({ x: 0, y: 0 });
+  const [geoData, setGeoData] = useState(null);
+
+  useEffect(() => {
+    fetch(geoUrl)
+      .then(res => {
+        if (!res.ok) throw new Error("Map Fail");
+        return res.json();
+      })
+      .then(setGeoData)
+      .catch(err => console.error("Map Download Error (Shielded):", err));
+  }, []);
 
   useEffect(() => {
     const handleMouseMove = (e) => {
@@ -68,21 +79,23 @@ const InteractiveBackground = () => {
         style={{ width: '100%', height: '100%', position: 'absolute', opacity: 0.6 }}
       >
         <ComposableMap projectionConfig={{ scale: 200 }} style={{ width: "100%", height: "100%" }}>
-          <Geographies geography={geoUrl}>
-            {({ geographies }) =>
-              geographies.map((geo) => (
-                <Geography 
-                  key={geo.rsmKey} 
-                  geography={geo} 
-                  style={{
-                    default: { fill: "#0f172a", stroke: "#60a5fa", strokeWidth: 0.6, outline: "none" },
-                    hover: { fill: "#10b981", stroke: "#34d399", strokeWidth: 1.5, outline: "none", transition: "all 0.2s ease-in-out", cursor: "pointer", filter: "drop-shadow(0px 0px 8px #10b981)" },
-                    pressed: { fill: "#3b82f6", outline: "none" }
-                  }}
-                />
-              ))
-            }
-          </Geographies>
+          {geoData && (
+            <Geographies geography={geoData}>
+              {({ geographies }) =>
+                geographies.map((geo) => (
+                  <Geography 
+                    key={geo.rsmKey} 
+                    geography={geo} 
+                    style={{
+                      default: { fill: "#0f172a", stroke: "#60a5fa", strokeWidth: 0.6, outline: "none" },
+                      hover: { fill: "#10b981", stroke: "#34d399", strokeWidth: 1.5, outline: "none", transition: "all 0.2s ease-in-out", cursor: "pointer", filter: "drop-shadow(0px 0px 8px #10b981)" },
+                      pressed: { fill: "#3b82f6", outline: "none" }
+                    }}
+                  />
+                ))
+              }
+            </Geographies>
+          )}
         </ComposableMap>
       </motion.div>
       <div style={{
