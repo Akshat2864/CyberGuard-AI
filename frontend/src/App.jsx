@@ -188,7 +188,6 @@ const Dashboard = () => {
       setIsSystemOffline(false);
     } catch (error) {
       console.error('Error fetching history:', error);
-      // Wait for backend redo
     } finally {
       setIsDataLoading(false);
     }
@@ -310,11 +309,7 @@ const Dashboard = () => {
       }
     } catch (error) {
       console.error('Error:', error);
-      if (error.message === 'Failed to fetch' || !navigator.onLine) {
-        setIsSystemOffline(true);
-      } else {
-        alert('Error connecting to backend.');
-      }
+      alert('Error connecting to backend Node.');
       setScanStatus('idle');
     }
   };
