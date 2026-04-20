@@ -30,20 +30,18 @@ URL_VALIDATION_REGEX = re.compile(r'^(https?|ftp)://[^\s/$.?#].[^\s]*$', re.IGNO
 
 # Configured CORS: Support development and production environments
 app = Flask(__name__)
-# Allow local dev and the specific netlify production URL
+# Configured CORS: Debug mode (Open)
 CORS(app, resources={r"/*": {
-    "origins": ["https://resonant-sorbet-da2247.netlify.app", "http://localhost:5173", "http://127.0.0.1:5173", "http://localhost:3000"],
+    "origins": "*",
     "methods": ["GET", "POST", "OPTIONS"],
     "allow_headers": ["Content-Type", "Authorization"]
 }})
 
 @app.after_request
 def after_request(response):
-    # Flexible origin handling for production
-    origin = request.headers.get('Origin')
-    if origin and (origin.endswith('.netlify.app') or 'localhost' in origin or '127.0.0.1' in origin):
-        response.headers['Access-Control-Allow-Origin'] = origin
+    response.headers['Access-Control-Allow-Origin'] = '*'
     response.headers['Access-Control-Allow-Headers'] = 'Content-Type,Authorization'
+    response.headers['Access-Control-Allow-Methods'] = 'GET, POST, OPTIONS'
     return response
 
 @app.before_request
