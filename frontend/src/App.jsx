@@ -538,6 +538,10 @@ const Dashboard = () => {
                     {scanStatus === 'scanning' ? 'Running...' : 'Execute'}
                   </button>
                 </div>
+                <div style={{ marginTop: '0.8rem', display: 'flex', alignItems: 'center', gap: '0.5rem', opacity: 0.5, fontSize: '0.75rem' }}>
+                    <div style={{ width: '6px', height: '6px', borderRadius: '50%', background: 'var(--accent-blue)', animation: 'pulse 2s infinite' }} />
+                    <span>Intelligence nodes may require ~30s to initialize on first request. Please standby if initial scan delays.</span>
+                </div>
               </div>
             )}
             
@@ -1038,6 +1042,10 @@ const Home = () => {
             <button disabled={isSearching} onClick={handleAnalyze} className="btn-primary" style={{ borderRadius: 'var(--radius-full)', padding: '0.5rem 1.5rem', fontSize: '0.9rem' }}>
               {isSearching ? <Activity size={16} className="animate-pulse-green" /> : 'Deep Analyze'}
             </button>
+         </div>
+         <div style={{ marginTop: '0.8rem', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem', opacity: 0.5, fontSize: '0.75rem' }}>
+            <div style={{ width: '6px', height: '6px', borderRadius: '50%', background: 'var(--accent-blue)', animation: 'pulse 2s infinite' }} />
+            <span>Core analysts wake up on demand. First scan may take ~30s.</span>
          </div>
       </div>
 
