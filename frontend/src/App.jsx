@@ -4,7 +4,7 @@ import { ShieldAlert, Activity, LayoutDashboard, KeyRound, ArrowRight, Mail, Mes
 import { motion, AnimatePresence } from 'framer-motion'
 import { PieChart, Pie, Cell, Tooltip as RechartsTooltip, ResponsiveContainer, AreaChart, Area, XAxis, YAxis, CartesianGrid, Legend } from 'recharts'
 import { ComposableMap, Geographies, Geography } from "react-simple-maps"
-import { Analytics } from '@vercel/analytics/react';
+// import { Analytics } from '@vercel/analytics/react'; // Potential conflict on Netlify
 import logo from './assets/logo.svg'
 import './index.css'
 
@@ -1535,8 +1535,12 @@ function App() {
   
   useEffect(() => {
     const catchError = (e) => {
-      console.error("Runtime Crash:", e);
-      setRuntimeError(e.message || "Unknown error component crash.");
+      console.error("🕵️ Runtime Crash Debug:", e);
+      // Detailed error breakdown
+      const msg = e.message || "";
+      const stack = e.error?.stack || "No stack trace available.";
+      const source = e.filename ? ` at ${e.filename.split('/').pop()}:${e.lineno}` : "";
+      setRuntimeError(`${msg}${source}\n\nSTACK: ${stack.slice(0, 200)}...`);
     };
     window.addEventListener('error', catchError);
     return () => window.removeEventListener('error', catchError);
@@ -1574,7 +1578,7 @@ function App() {
           <Footer />
         </div>
         <CookieConsent />
-        <Analytics />
+        {/* <Analytics /> */}
       </Router>
     </AuthContext.Provider>
   )
