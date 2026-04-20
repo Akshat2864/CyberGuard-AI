@@ -1,0 +1,24 @@
+# Secret keys & Environment
+.env
+*.env
+__pycache__/
+.venv/
+env/
+venv/
+.DS_Store
+
+# Frontend Dependencies
+frontend/node_modules/
+dist/
+build/
+
+# Massive ML Models (Better to download these during build)
+*.pkl
+*.csv
+model.pkl
+phishing_site_urls.csv
+
+# Logs & Temp
+*.log
+scratch/
+.gemini/
