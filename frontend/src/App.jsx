@@ -919,37 +919,7 @@ const Dashboard = () => {
         </div>
       </div>
 
-      {/* ── System Offline / Maintenance Overlay ── */}
-      {isSystemOffline && (
-        <motion.div 
-          initial={{ opacity: 0 }} animate={{ opacity: 1 }}
-          style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(2, 6, 23, 0.95)', backdropFilter: 'blur(10px)', zIndex: 1000, display: 'flex', alignItems: 'center', justifyContent: 'center', textAlign: 'center', padding: '2rem' }}
-        >
-          <div style={{ maxWidth: '500px' }}>
-            <motion.div animate={{ rotate: [0, 5, -5, 0] }} transition={{ duration: 4, repeat: Infinity }} style={{ marginBottom: '2rem', display: 'inline-block' }}>
-              <div style={{ padding: '1.5rem', background: 'rgba(239, 68, 68, 0.1)', border: '2px solid var(--accent-red)', borderRadius: '50%', color: 'var(--accent-red)' }}>
-                <CloudOff size={64} />
-              </div>
-            </motion.div>
-            <h2 style={{ fontSize: '2rem', marginBottom: '1rem', color: '#fff' }}>Intelligence Grid Offline</h2>
-            <p style={{ opacity: 0.6, marginBottom: '2rem', lineHeight: 1.6 }}>
-              The central analysis core is currently unreachable. This may be due to scheduled maintenance or a connection disruption in your regional node.
-            </p>
-            <div style={{ display: 'flex', justifyContent: 'center', gap: '1rem' }}>
-              <button 
-                onClick={() => { setIsSystemOffline(false); fetchHistory(); fetchAnalytics(); }} 
-                className="btn-primary" 
-                style={{ padding: '0.8rem 2rem' }}
-              >
-                Reconnect to Grid
-              </button>
-            </div>
-            <p style={{ marginTop: '2rem', fontSize: '0.75rem', color: 'var(--accent-blue)', opacity: 0.5, letterSpacing: '1px' }}>
-              ERR_CODE: SYSTEM_MAINTENANCE_702
-            </p>
-          </div>
-        </motion.div>
-      )}
+      {/* Maintenance Overlay Force-Disconnected */}
     </motion.div>
   );
 }
