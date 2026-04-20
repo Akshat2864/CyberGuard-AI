@@ -1,7 +1,8 @@
-# CyberGuard AI - Production Build v1.0
 import os
 import re
 import math
+import requests
+import joblib
 from collections import Counter
 from datetime import datetime
 from functools import lru_cache
@@ -10,12 +11,10 @@ from flask import Flask, request, jsonify
 from flask_cors import CORS
 from flask_limiter import Limiter
 from flask_limiter.util import get_remote_address
-import joblib
 from urllib.parse import urlparse
 from supabase import create_client, Client
-
-import os
 from dotenv import load_dotenv
+
 load_dotenv()
 
 # 🚀 PRE-COMPILED REGEX FOR MAXIMUM SCAN SPEED
@@ -80,9 +79,6 @@ except:
 LOCAL_HISTORY = []
 LOCAL_ANALYTICS = {"total_scans": 5, "safe_count": 5, "suspicious_count": 0, "malicious_count": 0}
 
-
-import requests # Added for redirect tracing
-from concurrent.futures import ThreadPoolExecutor, as_completed
 
 # ⚡ In-memory result cache: avoid redundant analysis of same URL
 _URL_CACHE = {}
