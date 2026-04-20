@@ -29,18 +29,21 @@ PHISHING_REGEX = re.compile(r"|".join(PHISHING_KEYWORDS), re.IGNORECASE)
 
 URL_VALIDATION_REGEX = re.compile(r'^(https?|ftp)://[^\s/$.?#].[^\s]*$', re.IGNORECASE)
 
+# Configured CORS: Support development and production environments
 app = Flask(__name__)
-# Configured CORS: Restrict to explicit domains including production frontend
-frontend_url = os.environ.get("FRONTEND_URL", "http://localhost:5173")
+# Allow local dev and the specific netlify production URL
 CORS(app, resources={r"/*": {
-    "origins": [frontend_url, "http://localhost:5173", "http://127.0.0.1:5173", "http://127.0.0.1:8000"],
+    "origins": ["https://resonant-sorbet-da2247.netlify.app", "http://localhost:5173", "http://127.0.0.1:5173", "http://localhost:3000"],
     "methods": ["GET", "POST", "OPTIONS"],
     "allow_headers": ["Content-Type", "Authorization"]
 }})
 
 @app.after_request
 def after_request(response):
-    response.headers['Access-Control-Allow-Origin'] = frontend_url
+    # Flexible origin handling for production
+    origin = request.headers.get('Origin')
+    if origin and (origin.endswith('.netlify.app') or 'localhost' in origin or '127.0.0.1' in origin):
+        response.headers['Access-Control-Allow-Origin'] = origin
     response.headers['Access-Control-Allow-Headers'] = 'Content-Type,Authorization'
     return response
 
