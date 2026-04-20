@@ -912,6 +912,32 @@ def system_audit():
         return jsonify({"error": f"Audit execution failure: {str(e)}"}), 500
 
 
+# 📊 Analytics & History Routes
+def _get_analytics_data():
+    try:
+        scans = supabase.table("url_scans").select("result").execute()
+        results = [s['result'] for s in scans.data]
+        return {
+            "total_scans": len(results),
+            "safe_count": results.count("Safe"),
+            "suspicious_count": results.count("Suspicious"),
+            "malicious_count": results.count("Malicious")
+        }
+    except:
+        return {"total_scans": 0, "safe_count": 0, "suspicious_count": 0, "malicious_count": 0}
+
+@app.route('/analytics', methods=['GET'])
+def get_analytics():
+    return jsonify(_get_analytics_data())
+
+@app.route('/history', methods=['GET'])
+def get_history():
+    try:
+        response = supabase.table("url_scans").select("*").order("created_at", desc=True).limit(50).execute()
+        return jsonify(response.data)
+    except Exception as e:
+        return jsonify([])
+
 # ⚙️ Engine Metadata
 @app.route('/system/engine-rules', methods=['GET'])
 def get_engine_rules():

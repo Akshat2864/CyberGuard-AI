@@ -162,8 +162,14 @@ const Dashboard = () => {
     try {
       const response = await fetch(`${API_BASE_URL}/history`);
       if (!response.ok) throw new Error("API_OFFLINE");
-      const data = await response.json();
       
+      const contentType = response.headers.get("content-type");
+      if (!contentType || !contentType.includes("application/json")) {
+         console.warn("Backend still waking up or route missing.");
+         return; // Don't crash
+      }
+
+      const data = await response.json();
       const historyList = Array.isArray(data) ? data : [];
       const sliced = historyList.slice(0, 20);
       setHistoryData(sliced);
@@ -180,7 +186,7 @@ const Dashboard = () => {
       setIsSystemOffline(false);
     } catch (error) {
       console.error('Error fetching history:', error);
-      setIsSystemOffline(true);
+      // Wait for backend redo
     } finally {
       setIsDataLoading(false);
     }
