@@ -128,7 +128,9 @@ const Dashboard = () => {
   const [showIdentityPanel, setShowIdentityPanel] = useState(false);
   const [threatHistory, setThreatHistory] = useState([]);
 
-  const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
+  const API_BASE_URL = (import.meta.env.VITE_API_URL && import.meta.env.VITE_API_URL !== "undefined") 
+    ? import.meta.env.VITE_API_URL 
+    : (window.location.hostname === 'localhost' ? 'http://localhost:8000' : 'https://cyberguard-ai-7zdf.onrender.com');
 
   const pingNodes = async () => {
     setNodeStatus({ latency: null, pinging: true });
@@ -1002,7 +1004,9 @@ const Home = () => {
       if(!searchVal) return;
       setIsSearching(true);
       try {
-        const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:8000';
+        const apiUrl = (import.meta.env.VITE_API_URL && import.meta.env.VITE_API_URL !== "undefined") 
+          ? import.meta.env.VITE_API_URL 
+          : (window.location.hostname === 'localhost' ? 'http://localhost:8000' : 'https://cyberguard-ai-7zdf.onrender.com');
         const response = await fetch(`${apiUrl}/analyze`, {
           method: 'POST',
           headers: {
