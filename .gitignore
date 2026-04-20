@@ -12,13 +12,7 @@ frontend/node_modules/
 dist/
 build/
 
-# Massive ML Models (Better to download these during build)
-*.pkl
-*.csv
-model.pkl
-phishing_site_urls.csv
-
-# Logs & Temp
+# logs & temp
 *.log
 scratch/
 .gemini/
