@@ -1,0 +1,25 @@
+<svg viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg" width="200" height="200">
+  <defs>
+    <style>
+      .atom-orbit { stroke: #00D4FF; stroke-width: 3; fill: none; }
+      .atom-nucleus { fill: #00D4FF; }
+      .atom-electron { fill: #00D4FF; }
+    </style>
+  </defs>
+  
+  <!-- Background -->
+  <rect width="200" height="200" fill="#000814"/>
+  
+  <!-- Orbits -->
+  <ellipse cx="100" cy="100" rx="60" ry="35" class="atom-orbit" transform="rotate(-25 100 100)"/>
+  <ellipse cx="100" cy="100" rx="60" ry="35" class="atom-orbit" transform="rotate(25 100 100)"/>
+  <ellipse cx="100" cy="100" rx="60" ry="35" class="atom-orbit"/>
+  
+  <!-- Nucleus -->
+  <circle cx="100" cy="100" r="8" class="atom-nucleus"/>
+  
+  <!-- Electrons on orbits -->
+  <circle cx="160" cy="100" r="5" class="atom-electron"/>
+  <circle cx="55" cy="75" r="5" class="atom-electron"/>
+  <circle cx="70" cy="135" r="5" class="atom-electron"/>
+</svg>
