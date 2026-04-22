@@ -278,47 +278,11 @@ p {
   z-index: 10;
 }
 
-/* Footer Styling */
-.footer-wrap {
-  padding: 4rem 2rem;
-  margin-top: 4rem;
-  border-top: 1px solid rgba(255,255,255,0.05);
-  text-align: center;
-  background: rgba(10, 14, 23, 0.8);
-  backdrop-filter: blur(10px);
-  pointer-events: auto;
-}
-
-/* Dashboard Title Scaling */
-.dash-title {
-  font-size: clamp(1.2rem, 4vw, 2rem);
-}
-
-.hero-title {
-  font-size: clamp(1.5rem, 6vw, 3.5rem);
-  font-weight: 800;
-  line-height: 1.1;
-  max-width: 900px;
-  margin: 0 auto 1.5rem auto;
-}
-
-.hero-desc {
-  font-size: clamp(0.9rem, 2.5vw, 1.1rem);
-  opacity: 0.8;
-  margin-top: 1rem;
-}
-
-.dash-container {
-  max-width: 1200px;
-  width: 100%;
-}
-
-@media (max-width: 768px) {
-  .footer-wrap { padding: 2rem 1rem; }
-  .footer-divider { display: none; }
-  .footer-contact { flex-direction: column; gap: 0.5rem !important; }
-}
-
+/* ==========================================
+   RESPONSIVE DESIGN SYSTEM
+   xs: 480px | sm: 600px | md: 768px | lg: 900px | xl: 1200px
+   Supports: Mobile / Tablet / Desktop / Android / iOS / Windows / macOS / Linux
+   ========================================== */
 
 /* Hamburger toggle (mobile only) */
 .hamburger {
@@ -403,121 +367,6 @@ p {
   .nav-container { padding: 1rem 1.5rem; }
   
   .navbar-brand span:last-child { display: none; } /* Hide 'AI' or extra text if needed */
-}
-
-/* 🖼️ MOBILE PRECISION FIXES (Based on Screenshots) */
-.search-input-group {
-  flex-wrap: wrap !important;
-  border-radius: 12px !important;
-  gap: 0.5rem;
-}
-
-.hero-analyze-btn {
-  width: 100% !important;
-  border-radius: 8px !important;
-}
-
-.hero-title {
-  padding: 0 1rem;
-}
-
-.hero-desc {
-  padding: 0 1.5rem;
-}
-
-.dash-container {
-  overflow-x: hidden;
-}
-
-.intel-grid {
-  width: 100% !important;
-  overflow-x: hidden !important;
-}
-
-/* Fix Graph Title Wrapping */
-.graph-title {
-  font-size: clamp(0.85rem, 3vw, 1.1rem) !important;
-  line-height: 1.2 !important;
-  width: 100%;
-}
-
-.viewport-title-text {
-  font-size: clamp(0.8rem, 3vw, 1.1rem);
-}
-
-/* Ensure nothing pushes the screen width */
-* {
-  max-width: 100vw !important;
-  box-sizing: border-box !important;
-}
-
-html, body {
-  overflow-x: hidden !important;
-  position: relative;
-  width: 100%;
-  margin: 0;
-  padding: 0;
-}
-
-#root {
-  overflow-x: hidden !important;
-  width: 100%;
-}
-
-.dash-container {
-  overflow-x: hidden !important;
-  padding: 1rem !important;
-  width: 100% !important;
-}
-
-.card {
-  max-width: 100% !important;
-  overflow: hidden !important;
-}
-
-@media (max-width: 480px) {
-  .nav-container {
-    padding: 0.8rem !important;
-  }
-  .card {
-    padding: 1rem !important;
-  }
-  .search-input-group input {
-    font-size: 0.85rem !important;
-  }
-  .stats-header-row {
-    flex-direction: column !important;
-    align-items: flex-start !important;
-  }
-  .dash-sidebar button {
-    min-width: 130px !important;
-  }
-}
-
-/* 📜 TABLE DATA HARDENING */
-.forensic-table {
-  width: 100%;
-  table-layout: fixed; /* Stop table from expanding based on content */
-}
-
-.forensic-table td {
-  word-break: break-all !important;
-  word-wrap: break-word !important;
-  white-space: normal !important;
-}
-
-/* 🥧 PIE CHART ADJUSTMENT */
-.pie-container {
-  width: 100% !important;
-  max-width: 100% !important;
-  overflow: hidden;
-}
-
-/* GHOST SCROLLBAR NUKE */
-#__next, #root, .App {
-  width: 100vw !important;
-  overflow-x: hidden !important;
-  position: relative;
 }
 
 /* ── MOBILE LANDSCAPE / LARGE MOBILE (600px–767px) ── */
