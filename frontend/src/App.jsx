@@ -1004,7 +1004,10 @@ const Home = () => {
       
       <p className="hero-desc" style={{ marginTop: '0.8rem', maxWidth: '600px', margin: '0 auto' }}>
         AI-Powered URL Threat Analysis & Real-Time Protection.
-        Identify Phishing, Malware, and       {/* Quick Analyzer Input Bar */}
+        Identify Phishing, Malware, and Suspicious Patterns.
+      </p>
+
+      {/* Quick Analyzer Input Bar */}
       <div className="search-container-wrap" style={{ marginTop: '1.8rem', marginBottom: '1.8rem', display: 'flex', justifyContent: 'center' }}>
          <div className="search-input-group" style={{ display: 'flex', width: '100%', maxWidth: '600px', background: 'rgba(10, 14, 23, 0.6)', borderRadius: 'var(--radius-full)', padding: '0.3rem', border: '1px solid rgba(255,255,255,0.1)', boxShadow: '0 4px 20px rgba(0,0,0,0.5)' }}>
             <div style={{ display: 'flex', alignItems: 'center', paddingLeft: '1rem', color: 'var(--text-secondary)' }}>
