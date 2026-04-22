@@ -476,23 +476,23 @@ const Dashboard = () => {
         <div className="card glass-panel dash-viewport">
           {scanStatus === 'scanning' && <div className="scanner-overlay" style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, pointerEvents: 'none', opacity: 0.5, zIndex: 0 }} />}
           
-          <div style={{ borderBottom: '1px solid var(--border-color)', padding: '1rem 1.5rem', position: 'relative', zIndex: 1, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-            <h3 style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', fontSize: '1.2rem', color: 'white', margin: 0 }}>
+          <div className="dash-viewport-header" style={{ borderBottom: '1px solid var(--border-color)', padding: '1rem 1.5rem', position: 'relative', zIndex: 1, display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '1rem' }}>
+            <h3 style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', fontSize: '1.1rem', color: 'white', margin: 0 }}>
               {activeTab === 'breach' ? <Mail size={22} color="var(--accent-pink)" /> :
                activeTab === 'urgent' ? <ShieldAlert size={22} color="var(--accent-red)" /> :
                activeTab === 'sms' ? <Search size={22} color="var(--accent-green)" /> :
                activeTab === 'email' ? <Zap size={22} color="var(--accent-blue)" /> :
                <Fingerprint size={22} color="var(--accent-blue)" />}
               
-              {activeTab === 'email' ? 'Batch URL Processor' : 
-               activeTab === 'breach' ? 'Breach Analysis Module' : 
-               activeTab === 'urgent' ? 'Intelligent URL Input Module' : 
-               activeTab === 'sms' ? 'System Auditor' : 'Heuristic Engine'}
+              <span className="viewport-title-text">
+                {activeTab === 'email' ? 'Batch URL Processor' : 
+                 activeTab === 'breach' ? 'Breach Analysis' : 
+                 activeTab === 'urgent' ? 'Threat Explorer' : 
+                 activeTab === 'sms' ? 'System Auditor' : 'Heuristic Engine'}
+              </span>
             </h3>
             <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
-              <div style={{ display: 'flex', gap: '0.4rem' }}>
-              </div>
-              <button onClick={handleReset} className="btn-secondary" style={{ padding: '0.3rem 0.8rem', fontSize: '0.8rem' }}>Reset Session</button>
+              <button onClick={handleReset} className="btn-secondary" style={{ padding: '0.3rem 0.8rem', fontSize: '0.75rem', width: 'auto' }}>Reset Session</button>
             </div>
           </div>
           
@@ -781,10 +781,10 @@ const Dashboard = () => {
       </div>
 
       {/* ── Threat Stats Graph ── */}
-      <div className="card glass-panel" style={{ maxWidth: '1200px', margin: '2rem auto', padding: '1.5rem' }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
-          <h3 style={{ fontSize: '1.1rem', display: 'flex', alignItems: 'center', gap: '0.6rem', margin: 0 }}>
-            <Activity size={18} color="var(--accent-blue)" />
+      <div className="card glass-panel" style={{ padding: '1.5rem', marginBottom: '1.5rem' }}>
+        <div className="stats-header-row" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
+          <h3 className="graph-title" style={{ margin: 0, display: 'flex', alignItems: 'center', gap: '0.8rem', flexWrap: 'wrap' }}>
+            <Activity size={20} color="var(--accent-blue)" />
             Live Threat Intelligence Graph
             <span style={{ fontSize: '0.65rem', color: 'var(--accent-green)', background: 'rgba(16,185,129,0.1)', border: '1px solid rgba(16,185,129,0.2)', borderRadius: '20px', padding: '0.15rem 0.6rem', letterSpacing: '1px', fontWeight: 700 }}>SYNCED</span>
           </h3>
@@ -836,18 +836,18 @@ const Dashboard = () => {
       </div>
 
       <div className="grid-cols-stats" style={{ maxWidth: '1200px', margin: '0 auto 2rem auto' }}>
-        <div className="card glass-panel" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', height: '360px' }}>
+        <div className="card glass-panel pie-container" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', height: 'auto', minHeight: '360px' }}>
           <h3 style={{ fontSize: '1.2rem', marginBottom: '1rem', alignSelf: 'flex-start', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
             {scanResult ? (scanResult.isBatch ? <BarChart3 size={18} color="var(--accent-blue)" /> : <Activity size={18} color="var(--accent-blue)" />) : <Search size={18} color="var(--accent-blue)" />}
-            {scanResult ? (scanResult.isBatch ? `Batch Profile (${scanResult.summary?.total || 1} URLs)` : 'Forensic Risk Gauge') : 'Global Intelligence Feed'}
+            {scanResult ? (scanResult.isBatch ? `Batch Profile` : 'Forensic Risk Gauge') : 'Global Feed'}
           </h3>
           {isDataLoading ? (
-             <div style={{ width: '100%', height: '100%', display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
+             <div style={{ width: '100%', height: '220px', display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
                  <SkeletonLoader type="chart" />
              </div>
           ) : (
-            <div style={{ width: '100%', height: '220px', flex: 1 }}>
-              <ResponsiveContainer>
+            <div style={{ width: '100%', height: '220px' }}>
+              <ResponsiveContainer width="100%" height="100%">
                 <PieChart>
                   <Pie data={pieData} cx="50%" cy="50%" innerRadius={60} outerRadius={80} paddingAngle={5} dataKey="value" stroke="none">
                     {pieData.map((entry, index) => <Cell key={`cell-${index}`} fill={entry.color} />)}
@@ -859,8 +859,8 @@ const Dashboard = () => {
           )}
         </div>
 
-        <div className="card glass-panel" style={{ display: 'flex', flexDirection: 'column', height: '360px' }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
+        <div className="card glass-panel" style={{ display: 'flex', flexDirection: 'column', height: 'auto', minHeight: '360px' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem', flexWrap: 'wrap', gap: '0.5rem' }}>
             <h3 style={{ fontSize: '1.2rem', margin: 0 }}>Persistent Forensic Logs</h3>
             {historyData.length > 0 && (
               <button 
@@ -874,36 +874,36 @@ const Dashboard = () => {
                   a.download = `CyberGuard_Forensics_${new Date().toISOString().split('T')[0]}.csv`;
                   a.click();
                 }}
-                style={{ background: 'rgba(59,130,246,0.1)', border: '1px solid rgba(59,130,246,0.3)', color: 'var(--accent-blue)', borderRadius: '6px', padding: '0.3rem 0.6rem', fontSize: '0.7rem', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '0.4rem' }}
+                style={{ background: 'rgba(59,130,246,0.1)', border: '1px solid rgba(59,130,246,0.3)', color: 'var(--accent-blue)', borderRadius: '6px', padding: '0.3rem 0.6rem', fontSize: '0.7rem', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '0.4rem', width: 'auto' }}
               >
                 📥 Export CSV
               </button>
             )}
           </div>
-          <div style={{ overflowY: 'auto', flex: 1, paddingRight: '0.5rem' }} className="custom-scrollbar">
+          <div style={{ overflowX: 'auto', flex: 1, paddingRight: '0.2rem' }} className="custom-scrollbar">
             {isDataLoading ? (
                <SkeletonLoader type="row" count={5} />
             ) : historyData.length === 0 ? (
                <div style={{ padding: '2rem', textAlign: 'center', opacity: 0.5 }}>No logs recorded yet.</div>
             ) : (
-               <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', fontSize: '0.85rem' }}>
+               <table className="forensic-table" style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', fontSize: '0.8rem' }}>
                  <thead style={{ position: 'sticky', top: 0, zIndex: 20, backgroundColor: 'var(--bg-card)' }}>
                    <tr style={{ borderBottom: '1px solid rgba(255,255,255,0.1)', color: 'var(--text-secondary)' }}>
-                     <th style={{ padding: '0.8rem 0.5rem', backgroundColor: 'var(--bg-card)' }}>ID</th>
-                     <th style={{ padding: '0.8rem 0.5rem', backgroundColor: 'var(--bg-card)' }}>Time</th>
-                     <th style={{ padding: '0.8rem 0.5rem', backgroundColor: 'var(--bg-card)' }}>Target</th>
-                     <th style={{ padding: '0.8rem 0.5rem', backgroundColor: 'var(--bg-card)' }}>State</th>
-                     <th style={{ padding: '0.8rem 0.5rem', backgroundColor: 'var(--bg-card)' }}>Confidence</th>
+                     <th style={{ padding: '0.8rem 0.4rem', width: '10%' }}>ID</th>
+                     <th style={{ padding: '0.8rem 0.4rem', width: '20%' }}>Time</th>
+                     <th style={{ padding: '0.8rem 0.4rem', width: '40%' }}>Target</th>
+                     <th style={{ padding: '0.8rem 0.4rem', width: '15%' }}>Result</th>
+                     <th style={{ padding: '0.8rem 0.4rem', width: '15%' }}>Conf.</th>
                    </tr>
                  </thead>
                  <tbody>
                    {historyData.map((row, idx) => (
                      <tr key={row.id || idx} style={{ borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
-                       <td style={{ padding: '0.8rem 0.5rem', color: 'var(--text-secondary)' }}>#{idx + 1}</td>
-                       <td style={{ padding: '0.8rem 0.5rem', color: 'var(--accent-blue)' }}>{row.created_at ? new Date(row.created_at).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit', second:'2-digit'}) : 'Real-time'}</td>
-                       <td style={{ padding: '0.8rem 0.5rem', fontFamily: 'monospace', color: '#fff', wordBreak: 'break-all' }}>{row.url || row.target}</td>
-                       <td style={{ padding: '0.8rem 0.5rem', color: row.result === 'Safe' ? '#10b981' : row.result === 'Suspicious' ? '#f59e0b' : '#ef4444' }}>{row.result || row.status}</td>
-                       <td style={{ padding: '0.8rem 0.5rem' }}>{row.confidence || row.confidence}%</td>
+                       <td style={{ padding: '0.8rem 0.4rem', color: 'var(--text-secondary)' }}>#{idx + 1}</td>
+                       <td style={{ padding: '0.8rem 0.4rem', color: 'var(--accent-blue)' }}>{row.created_at ? new Date(row.created_at).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}) : 'Now'}</td>
+                       <td style={{ padding: '0.8rem 0.4rem', fontFamily: 'monospace', color: '#fff', fontSize: '0.75rem' }}>{row.url || row.target}</td>
+                       <td style={{ padding: '0.8rem 0.4rem', color: row.result === 'Safe' ? '#10b981' : row.result === 'Suspicious' ? '#f59e0b' : '#ef4444' }}>{row.result}</td>
+                       <td style={{ padding: '0.8rem 0.4rem' }}>{row.confidence}%</td>
                      </tr>
                    ))}
                  </tbody>

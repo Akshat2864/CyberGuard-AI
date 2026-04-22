@@ -405,6 +405,121 @@ p {
   .navbar-brand span:last-child { display: none; } /* Hide 'AI' or extra text if needed */
 }
 
+/* 🖼️ MOBILE PRECISION FIXES (Based on Screenshots) */
+.search-input-group {
+  flex-wrap: wrap !important;
+  border-radius: 12px !important;
+  gap: 0.5rem;
+}
+
+.hero-analyze-btn {
+  width: 100% !important;
+  border-radius: 8px !important;
+}
+
+.hero-title {
+  padding: 0 1rem;
+}
+
+.hero-desc {
+  padding: 0 1.5rem;
+}
+
+.dash-container {
+  overflow-x: hidden;
+}
+
+.intel-grid {
+  width: 100% !important;
+  overflow-x: hidden !important;
+}
+
+/* Fix Graph Title Wrapping */
+.graph-title {
+  font-size: clamp(0.85rem, 3vw, 1.1rem) !important;
+  line-height: 1.2 !important;
+  width: 100%;
+}
+
+.viewport-title-text {
+  font-size: clamp(0.8rem, 3vw, 1.1rem);
+}
+
+/* Ensure nothing pushes the screen width */
+* {
+  max-width: 100vw !important;
+  box-sizing: border-box !important;
+}
+
+html, body {
+  overflow-x: hidden !important;
+  position: relative;
+  width: 100%;
+  margin: 0;
+  padding: 0;
+}
+
+#root {
+  overflow-x: hidden !important;
+  width: 100%;
+}
+
+.dash-container {
+  overflow-x: hidden !important;
+  padding: 1rem !important;
+  width: 100% !important;
+}
+
+.card {
+  max-width: 100% !important;
+  overflow: hidden !important;
+}
+
+@media (max-width: 480px) {
+  .nav-container {
+    padding: 0.8rem !important;
+  }
+  .card {
+    padding: 1rem !important;
+  }
+  .search-input-group input {
+    font-size: 0.85rem !important;
+  }
+  .stats-header-row {
+    flex-direction: column !important;
+    align-items: flex-start !important;
+  }
+  .dash-sidebar button {
+    min-width: 130px !important;
+  }
+}
+
+/* 📜 TABLE DATA HARDENING */
+.forensic-table {
+  width: 100%;
+  table-layout: fixed; /* Stop table from expanding based on content */
+}
+
+.forensic-table td {
+  word-break: break-all !important;
+  word-wrap: break-word !important;
+  white-space: normal !important;
+}
+
+/* 🥧 PIE CHART ADJUSTMENT */
+.pie-container {
+  width: 100% !important;
+  max-width: 100% !important;
+  overflow: hidden;
+}
+
+/* GHOST SCROLLBAR NUKE */
+#__next, #root, .App {
+  width: 100vw !important;
+  overflow-x: hidden !important;
+  position: relative;
+}
+
 /* ── MOBILE LANDSCAPE / LARGE MOBILE (600px–767px) ── */
 @media (max-width: 768px) {
   body { font-size: 14px; }
