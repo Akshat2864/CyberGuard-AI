@@ -278,11 +278,47 @@ p {
   z-index: 10;
 }
 
-/* ==========================================
-   RESPONSIVE DESIGN SYSTEM
-   xs: 480px | sm: 600px | md: 768px | lg: 900px | xl: 1200px
-   Supports: Mobile / Tablet / Desktop / Android / iOS / Windows / macOS / Linux
-   ========================================== */
+/* Footer Styling */
+.footer-wrap {
+  padding: 4rem 2rem;
+  margin-top: 4rem;
+  border-top: 1px solid rgba(255,255,255,0.05);
+  text-align: center;
+  background: rgba(10, 14, 23, 0.8);
+  backdrop-filter: blur(10px);
+  pointer-events: auto;
+}
+
+/* Dashboard Title Scaling */
+.dash-title {
+  font-size: clamp(1.2rem, 4vw, 2rem);
+}
+
+.hero-title {
+  font-size: clamp(1.5rem, 6vw, 3.5rem);
+  font-weight: 800;
+  line-height: 1.1;
+  max-width: 900px;
+  margin: 0 auto 1.5rem auto;
+}
+
+.hero-desc {
+  font-size: clamp(0.9rem, 2.5vw, 1.1rem);
+  opacity: 0.8;
+  margin-top: 1rem;
+}
+
+.dash-container {
+  max-width: 1200px;
+  width: 100%;
+}
+
+@media (max-width: 768px) {
+  .footer-wrap { padding: 2rem 1rem; }
+  .footer-divider { display: none; }
+  .footer-contact { flex-direction: column; gap: 0.5rem !important; }
+}
+
 
 /* Hamburger toggle (mobile only) */
 .hamburger {

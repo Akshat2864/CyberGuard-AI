@@ -395,21 +395,21 @@ const Dashboard = () => {
   };
 
   return (
-    <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="dash-container" style={{ maxWidth: '1200px', margin: '0 auto', pointerEvents: 'auto' }}>
+    <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="dash-container" style={{ margin: '0 auto', pointerEvents: 'auto' }}>
       
       {/* Dashboard Header */}
       <div className="dash-header">
-        <div style={{ display: 'flex', alignItems: 'center', gap: '1.5rem' }}>
-          <div style={{ width: '68px', height: '68px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '1.5rem', flexWrap: 'wrap' }}>
+          <div className="dash-logo-container" style={{ width: '68px', height: '68px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
             <img src={logo} alt="CyberGuard AI Logo" style={{ width: '100%', height: '100%', objectFit: 'contain', filter: 'drop-shadow(0 0 8px rgba(59, 130, 246, 0.5))' }} />
           </div>
           <div>
-            <h2 style={{ fontSize: '2rem', textShadow: '0 0 10px rgba(59, 130, 246, 0.3)', margin: 0 }}>Intelligence Analysis Dashboard</h2>
+            <h2 className="dash-title" style={{ textShadow: '0 0 10px rgba(59, 130, 246, 0.3)', margin: 0 }}>Intelligence Analysis Dashboard</h2>
             <p style={{ color: 'var(--text-secondary)', margin: '0.2rem 0 0 0' }}>Forensic Command Center.</p>
           </div>
         </div>
         <div
-          className="card glass-panel"
+          className="card glass-panel node-status-card"
           onClick={pingNodes}
           style={{ padding: '0.8rem 1.5rem', display: 'flex', alignItems: 'center', gap: '1rem', border: '1px solid rgba(16, 185, 129, 0.3)', cursor: 'pointer', userSelect: 'none' }}
           title="Click to ping backend nodes"
@@ -430,60 +430,50 @@ const Dashboard = () => {
       <div className="grid-cols-tools" style={{ marginBottom: '3rem' }}>
         
         {/* Sidebar */}
-        <div className="dash-sidebar" style={{ display: 'flex', flexDirection: 'column', gap: '0.6rem', height: '460px' }}>
-          <button onClick={() => { setActiveTab('email'); handleReset(); setUrlInput(''); setAuditPath(''); }} className={`card ${activeTab === 'email' ? 'glass-panel' : ''}`} style={{ flex: 1, borderLeft: activeTab === 'email' ? '3px solid var(--accent-blue)' : '1px solid var(--border-color)', background: activeTab === 'email' ? 'rgba(59, 130, 246, 0.1)' : 'var(--bg-card)', cursor: 'pointer', textAlign: 'left', display: 'flex', alignItems: 'center', gap: '1rem', padding: '0 1.25rem' }}>
+        <div className="dash-sidebar">
+          <button onClick={() => { setActiveTab('email'); handleReset(); setUrlInput(''); setAuditPath(''); }} className={`card ${activeTab === 'email' ? 'glass-panel' : ''}`} style={{ flex: 1, borderLeft: activeTab === 'email' ? '3px solid var(--accent-blue)' : '1px solid var(--border-color)', background: activeTab === 'email' ? 'rgba(59, 130, 246, 0.1)' : 'var(--bg-card)', cursor: 'pointer', textAlign: 'left', display: 'flex', alignItems: 'center', gap: '1rem', padding: '0.75rem 1.25rem' }}>
             <Zap size={22} style={{ color: activeTab === 'email' ? 'var(--accent-blue)' : 'var(--text-secondary)' }} />
             <div>
               <h4 style={{ fontSize: '1rem', marginBottom: '0.1rem', color: activeTab === 'email' ? 'white' : 'var(--text-primary)' }}>Batch URL Processor</h4>
-              <p style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>Analyze multiple URL structures</p>
+              <p style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>Analyze multiple structures</p>
             </div>
           </button>
           
-          <button onClick={() => { setActiveTab('breach'); handleReset(); setEmailInput(''); }} className={`card ${activeTab === 'breach' ? 'glass-panel' : ''}`} style={{ flex: 1, borderLeft: activeTab === 'breach' ? '3px solid var(--accent-pink)' : '1px solid var(--border-color)', background: activeTab === 'breach' ? 'rgba(236, 72, 153, 0.1)' : 'var(--bg-card)', cursor: 'pointer', textAlign: 'left', display: 'flex', alignItems: 'center', gap: '1rem', padding: '0 1.25rem' }}>
+          <button onClick={() => { setActiveTab('breach'); handleReset(); setEmailInput(''); }} className={`card ${activeTab === 'breach' ? 'glass-panel' : ''}`} style={{ flex: 1, borderLeft: activeTab === 'breach' ? '3px solid var(--accent-pink)' : '1px solid var(--border-color)', background: activeTab === 'breach' ? 'rgba(236, 72, 153, 0.1)' : 'var(--bg-card)', cursor: 'pointer', textAlign: 'left', display: 'flex', alignItems: 'center', gap: '1rem', padding: '0.75rem 1.25rem' }}>
             <Mail size={22} style={{ color: activeTab === 'breach' ? 'var(--accent-pink)' : 'var(--text-secondary)' }} />
             <div>
               <h4 style={{ fontSize: '1rem', marginBottom: '0.1rem', color: activeTab === 'breach' ? 'white' : 'var(--text-primary)' }}>Email Leak Checker</h4>
-              <p style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>Check data breaches & exposures</p>
+              <p style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>Check data breaches</p>
             </div>
           </button>
           
-          <button onClick={() => { setActiveTab('urgent'); handleReset(); setUrlInput(''); setAuditPath(''); }} className={`card ${activeTab === 'urgent' ? 'glass-panel' : ''}`} style={{ flex: 1, borderLeft: activeTab === 'urgent' ? '3px solid var(--accent-red)' : '1px solid var(--border-color)', background: activeTab === 'urgent' ? 'rgba(239, 68, 68, 0.1)' : 'var(--bg-card)', cursor: 'pointer', textAlign: 'left', display: 'flex', alignItems: 'center', gap: '1rem', padding: '0 1.25rem' }}>
+          <button onClick={() => { setActiveTab('urgent'); handleReset(); setUrlInput(''); setAuditPath(''); }} className={`card ${activeTab === 'urgent' ? 'glass-panel' : ''}`} style={{ flex: 1, borderLeft: activeTab === 'urgent' ? '3px solid var(--accent-red)' : '1px solid var(--border-color)', background: activeTab === 'urgent' ? 'rgba(239, 68, 68, 0.1)' : 'var(--bg-card)', cursor: 'pointer', textAlign: 'left', display: 'flex', alignItems: 'center', gap: '1rem', padding: '0.75rem 1.25rem' }}>
             <ShieldAlert size={22} style={{ color: activeTab === 'urgent' ? 'var(--accent-red)' : 'var(--text-secondary)' }} />
             <div>
               <h4 style={{ fontSize: '1rem', marginBottom: '0.1rem', color: activeTab === 'urgent' ? 'white' : 'var(--text-primary)' }}>Threat Explorer</h4>
-              <p style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>Deep-scan malicious behavior</p>
+              <p style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>Deep-scan behavior</p>
             </div>
           </button>
           
-          <button onClick={() => { setActiveTab('heuristic'); handleReset(); setUrlInput(''); }} className={`card ${activeTab === 'heuristic' ? 'glass-panel' : ''}`} style={{ flex: 1, borderLeft: activeTab === 'heuristic' ? '3px solid var(--accent-blue)' : '1px solid var(--border-color)', background: activeTab === 'heuristic' ? 'rgba(59, 130, 246, 0.1)' : 'var(--bg-card)', cursor: 'pointer', textAlign: 'left', display: 'flex', alignItems: 'center', gap: '1rem', padding: '0 1.25rem' }}>
+          <button onClick={() => { setActiveTab('heuristic'); handleReset(); setUrlInput(''); }} className={`card ${activeTab === 'heuristic' ? 'glass-panel' : ''}`} style={{ flex: 1, borderLeft: activeTab === 'heuristic' ? '3px solid var(--accent-blue)' : '1px solid var(--border-color)', background: activeTab === 'heuristic' ? 'rgba(59, 130, 246, 0.1)' : 'var(--bg-card)', cursor: 'pointer', textAlign: 'left', display: 'flex', alignItems: 'center', gap: '1rem', padding: '0.75rem 1.25rem' }}>
             <Fingerprint size={22} style={{ color: activeTab === 'heuristic' ? 'var(--accent-blue)' : 'var(--text-secondary)' }} />
             <div>
               <h4 style={{ fontSize: '1rem', marginBottom: '0.1rem', color: activeTab === 'heuristic' ? 'white' : 'var(--text-primary)' }}>Heuristic Engine</h4>
-              <p style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>ML Pattern Recognition</p>
+              <p style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>ML Recognition</p>
             </div>
           </button>
  
-          <button onClick={() => { setActiveTab('sms'); handleReset(); setUrlInput(''); setAuditPath(''); setAuditResults(null); }} className={`card ${activeTab === 'sms' ? 'glass-panel' : ''}`} style={{ flex: 1, borderLeft: activeTab === 'sms' ? '3px solid #a855f7' : '1px solid var(--border-color)', background: activeTab === 'sms' ? 'rgba(168, 85, 247, 0.1)' : 'var(--bg-card)', cursor: 'pointer', textAlign: 'left', display: 'flex', alignItems: 'center', gap: '1rem', padding: '0 1.25rem' }}>
+          <button onClick={() => { setActiveTab('sms'); handleReset(); setUrlInput(''); setAuditPath(''); setAuditResults(null); }} className={`card ${activeTab === 'sms' ? 'glass-panel' : ''}`} style={{ flex: 1, borderLeft: activeTab === 'sms' ? '3px solid #a855f7' : '1px solid var(--border-color)', background: activeTab === 'sms' ? 'rgba(168, 85, 247, 0.1)' : 'var(--bg-card)', cursor: 'pointer', textAlign: 'left', display: 'flex', alignItems: 'center', gap: '1rem', padding: '0.75rem 1.25rem' }}>
             <Search size={22} style={{ color: activeTab === 'sms' ? '#a855f7' : 'var(--text-secondary)' }} />
             <div>
               <h4 style={{ fontSize: '1rem', marginBottom: '0.1rem', color: activeTab === 'sms' ? 'white' : 'var(--text-primary)' }}>System Auditor</h4>
-              <p style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>Scan project directories</p>
+              <p style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>Scan project files</p>
             </div>
           </button>
         </div>
         
         {/* Main Intelligence Viewport */}
-        <div className="card glass-panel dash-viewport" style={{ 
-          height: '460px', 
-          display: 'flex', 
-          flexDirection: 'column', 
-          position: 'relative', 
-          overflow: 'hidden',
-          background: 'rgba(10, 14, 23, 0.3)',
-          backdropFilter: 'blur(16px)',
-          border: '1px solid rgba(59, 130, 246, 0.2)',
-          boxShadow: '0 0 40px rgba(59, 130, 246, 0.1)'
-        }}>
+        <div className="card glass-panel dash-viewport">
           {scanStatus === 'scanning' && <div className="scanner-overlay" style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, pointerEvents: 'none', opacity: 0.5, zIndex: 0 }} />}
           
           <div style={{ borderBottom: '1px solid var(--border-color)', padding: '1rem 1.5rem', position: 'relative', zIndex: 1, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
@@ -929,25 +919,17 @@ const Dashboard = () => {
 }
 
 const Footer = () => (
-  <footer style={{ 
-    padding: '4rem 2rem', 
-    marginTop: '4rem', 
-    borderTop: '1px solid rgba(255,255,255,0.05)', 
-    textAlign: 'center',
-    background: 'rgba(10, 14, 23, 0.8)',
-    backdropFilter: 'blur(10px)',
-    pointerEvents: 'auto'
-  }}>
-    <div style={{ maxWidth: '1100px', margin: '0 auto', display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
-      <div style={{ display: 'flex', justifyContent: 'center', gap: '2rem' }}>
+  <footer className="footer-wrap">
+    <div className="footer-container" style={{ maxWidth: '1100px', margin: '0 auto', display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
+      <div className="footer-links" style={{ display: 'flex', justifyContent: 'center', gap: '2rem', flexWrap: 'wrap' }}>
         <Link to="/privacy" style={{ color: 'var(--text-secondary)', textDecoration: 'none', transition: 'color 0.2s' }}>Privacy Protocol</Link>
         <Link to="/terms" style={{ color: 'var(--text-secondary)', textDecoration: 'none', transition: 'color 0.2s' }}>Terms of Operation</Link>
         <a href="mailto:rishikhadiyar@gmail.com?subject=CyberGuard AI Bug Report" style={{ color: 'var(--text-secondary)', textDecoration: 'none', transition: 'color 0.2s' }}>🐛 Report Bug</a>
       </div>
-      <div style={{ color: 'var(--text-secondary)', fontSize: '0.9rem', display: 'flex', justifyContent: 'center', gap: '1.5rem', flexWrap: 'wrap' }}>
+      <div className="footer-contact" style={{ color: 'var(--text-secondary)', fontSize: '0.9rem', display: 'flex', justifyContent: 'center', gap: '1.5rem', flexWrap: 'wrap' }}>
         <span><strong>Contact:</strong></span>
         <a href="mailto:rishikhadiyar@gmail.com" style={{ color: 'var(--accent-blue)', textDecoration: 'none' }}>rishikhadiyar@gmail.com</a>
-        <span style={{ opacity: 0.5 }}>|</span>
+        <span style={{ opacity: 0.5 }} className="footer-divider">|</span>
         <a href="tel:+917389280244" style={{ color: 'var(--accent-blue)', textDecoration: 'none' }}>+91 7389280244</a>
       </div>
       <div style={{ color: 'var(--text-secondary)', fontSize: '0.9rem', marginTop: '0.5rem' }}>
@@ -1008,26 +990,23 @@ const Home = () => {
       transition={{ type: "spring", stiffness: 100, damping: 20 }}
       className="card glass-panel hero-card" 
       onClick={handleDivClick}
-      style={{ background: 'rgba(17, 24, 39, 0.3)', backdropFilter: 'blur(3px)', WebkitBackdropFilter: 'blur(3px)', maxWidth: '850px', margin: '2rem auto', textAlign: 'center', position: 'relative', overflow: 'hidden', pointerEvents: 'auto' }}
+      style={{ background: 'rgba(17, 24, 39, 0.3)', backdropFilter: 'blur(3px)', WebkitBackdropFilter: 'blur(3px)', margin: '2rem auto', textAlign: 'center', position: 'relative', overflow: 'hidden', pointerEvents: 'auto' }}
     >
       <motion.div animate={{ filter: ["drop-shadow(0px 0px 5px rgba(59, 130, 246, 0.3))", "drop-shadow(0px 0px 25px rgba(59, 130, 246, 0.5))", "drop-shadow(0px 0px 5px rgba(59, 130, 246, 0.3))"] }} transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}>
-        <div style={{ width: '90px', height: '90px', margin: '0 auto 1.2rem', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+        <div className="hero-logo-container" style={{ width: '90px', height: '90px', margin: '0 auto 1.2rem', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
           <img src={logo} alt="CyberGuard AI Logo" style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
         </div>
       </motion.div>
       
-      <h1 style={{ marginBottom: '1rem', background: 'linear-gradient(90deg, #fff, #9ca3af)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
+      <h1 className="hero-title" style={{ marginBottom: '1rem', background: 'linear-gradient(90deg, #fff, #9ca3af)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
         Intelligent Malicious Link Detection
       </h1>
       
-      <p style={{ marginTop: '0.8rem', fontSize: '1.1rem', maxWidth: '600px', margin: '0 auto' }}>
+      <p className="hero-desc" style={{ marginTop: '0.8rem', maxWidth: '600px', margin: '0 auto' }}>
         AI-Powered URL Threat Analysis & Real-Time Protection.
-        Identify Phishing, Malware, and Suspicious Patterns.
-      </p>
-
-      {/* Quick Analyzer Input Bar */}
-      <div style={{ marginTop: '1.8rem', marginBottom: '1.8rem', display: 'flex', justifyContent: 'center' }}>
-         <div style={{ display: 'flex', width: '100%', maxWidth: '600px', background: 'rgba(10, 14, 23, 0.6)', borderRadius: 'var(--radius-full)', padding: '0.3rem', border: '1px solid rgba(255,255,255,0.1)', boxShadow: '0 4px 20px rgba(0,0,0,0.5)' }}>
+        Identify Phishing, Malware, and       {/* Quick Analyzer Input Bar */}
+      <div className="search-container-wrap" style={{ marginTop: '1.8rem', marginBottom: '1.8rem', display: 'flex', justifyContent: 'center' }}>
+         <div className="search-input-group" style={{ display: 'flex', width: '100%', maxWidth: '600px', background: 'rgba(10, 14, 23, 0.6)', borderRadius: 'var(--radius-full)', padding: '0.3rem', border: '1px solid rgba(255,255,255,0.1)', boxShadow: '0 4px 20px rgba(0,0,0,0.5)' }}>
             <div style={{ display: 'flex', alignItems: 'center', paddingLeft: '1rem', color: 'var(--text-secondary)' }}>
                <Search size={18} />
             </div>
@@ -1037,10 +1016,11 @@ const Home = () => {
                value={searchVal}
                onChange={(e) => setSearchVal(e.target.value)}
                placeholder="Analyze URL formats..." 
-               style={{ flex: 1, background: 'transparent', border: 'none', color: 'white', padding: '0.6rem 1rem', outline: 'none', fontSize: '1rem' }} 
+               className="hero-input"
+               style={{ flex: 1, background: 'transparent', border: 'none', color: 'white', padding: '10px 1rem', outline: 'none' }} 
             />
-            <button disabled={isSearching} onClick={handleAnalyze} className="btn-primary" style={{ borderRadius: 'var(--radius-full)', padding: '0.5rem 1.5rem', fontSize: '0.9rem' }}>
-              {isSearching ? <Activity size={16} className="animate-pulse-green" /> : 'Deep Analyze'}
+            <button disabled={isSearching} onClick={handleAnalyze} className="btn-primary hero-analyze-btn" style={{ borderRadius: 'var(--radius-full)', padding: '0.5rem 1.5rem', fontSize: '0.9rem' }}>
+               {isSearching ? <Activity size={16} className="animate-pulse-green" /> : 'Deep Analyze'}
             </button>
          </div>
       </div>
@@ -1420,8 +1400,8 @@ const Navbar = () => {
             <AnimatePresence mode="wait">
               {showLogoutConfirm ? (
                 <motion.div key="confirm" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                  <button onClick={logout} className="btn-primary" style={{ background: 'var(--accent-red)', padding: '0.4rem 1rem', fontSize: '0.75rem' }}>Confirm Sign Out</button>
-                  <button onClick={() => setShowLogoutConfirm(false)} className="btn-secondary" style={{ padding: '0.4rem 1rem', fontSize: '0.75rem' }}>Cancel</button>
+                  <button onClick={logout} className="btn-primary" style={{ background: 'var(--accent-red)', padding: '0.4rem 1rem', fontSize: '0.75rem', width: 'auto' }}>Confirm Sign Out</button>
+                  <button onClick={() => setShowLogoutConfirm(false)} className="btn-secondary" style={{ padding: '0.4rem 1rem', fontSize: '0.75rem', width: 'auto' }}>Cancel</button>
                 </motion.div>
               ) : (
                 <motion.button key="button" onClick={() => setShowLogoutConfirm(true)} whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }} className="btn-secondary" style={{ padding: '0.6rem 1.5rem', fontSize: '0.85rem' }}>
@@ -1524,7 +1504,7 @@ function App() {
         <InteractiveBackground />
         <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', position: 'relative', zIndex: 10, pointerEvents: 'auto' }}>
           <Navbar />
-          <main style={{ flex: 1, padding: '2rem' }}>
+          <main style={{ flex: 1 }}>
             {runtimeError ? (
               <div style={{ padding: '4rem', textAlign: 'center', background: 'rgba(239, 68, 68, 0.1)', border: '1px solid var(--accent-red)', borderRadius: '12px' }}>
                 <ShieldAlert size={48} color="var(--accent-red)" style={{ margin: '0 auto 1.5rem' }} />
