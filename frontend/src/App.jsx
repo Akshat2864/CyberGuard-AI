@@ -363,8 +363,9 @@ const Dashboard = () => {
     }
   };
 
-  const handleEmailCheck = async () => {
-    if (!emailInput.trim()) {
+  const handleEmailCheck = async (forcedEmail = null) => {
+    const emailToUse = forcedEmail || emailInput;
+    if (!emailToUse.trim()) {
       alert('Please enter an email address');
       return;
     }
@@ -373,7 +374,7 @@ const Dashboard = () => {
       const response = await fetch(`${API_BASE_URL}/check-email`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email: emailInput })
+        body: JSON.stringify({ email: emailToUse })
       });
       const data = await response.json();
       if(response.ok) {
@@ -381,12 +382,9 @@ const Dashboard = () => {
         setScanStatus('result');
         if (data.updated_analytics) setAnalytics(data.updated_analytics);
         else fetchAnalytics();
-        // ⚡ Instant log entry for breach check
-        setHistoryData(prev => [{
-          url: `Identity Check: ${emailInput}`, result: data.result,
-          confidence: data.num_leaks > 0 ? 100 : 98,
-          risk_score: data.risk_score, created_at: new Date().toISOString()
-        }, ...prev].slice(0, 10));
+        
+        // Refresh history to include new scan
+        fetchHistory();
       } else {
         alert('Email Check Error: ' + data.error);
         setScanStatus('idle');
@@ -404,10 +402,7 @@ const Dashboard = () => {
         const email = target.replace('Identity Check: ', '');
         setActiveTab('breach');
         setEmailInput(email);
-        setTimeout(() => {
-           const btn = document.querySelector('button[onClick*="handleEmailCheck"]');
-           if(btn) btn.click();
-        }, 100);
+        handleEmailCheck(email);
       } else {
         setActiveTab('urgent');
         setUrlInput(target);
@@ -420,16 +415,20 @@ const Dashboard = () => {
       if(!window.confirm('Clear this intelligence entry?')) return;
       
       try {
+        // Optimistically update UI
+        setHistoryData(prev => prev.filter(h => (h.id !== item.id) && (h.url !== item.url)));
+
         const response = await fetch(`${API_BASE_URL}/history/delete`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ target: item.url || item.target, id: item.id })
         });
-        if(response.ok) {
-          fetchHistory(); 
-        }
+        
+        // Final sync with server
+        fetchHistory();
       } catch (err) {
         console.error('Delete error:', err);
+        fetchHistory(); // Revert on error
       }
     };
 
