@@ -398,6 +398,12 @@ const Dashboard = () => {
 
     const handleHistoryClick = (item) => {
       const target = item.url || item.target;
+      
+      // Scroll to the main result div area immediately
+      const topEl = document.getElementById('top');
+      if (topEl) topEl.scrollIntoView({ behavior: 'smooth' });
+      else window.scrollTo({ top: 0, behavior: 'smooth' });
+
       if (target.startsWith('Identity Check: ')) {
         const email = target.replace('Identity Check: ', '');
         setActiveTab('breach');
@@ -414,21 +420,30 @@ const Dashboard = () => {
       e.stopPropagation(); 
       if(!window.confirm('Clear this intelligence entry?')) return;
       
-      try {
-        // Optimistically update UI
-        setHistoryData(prev => prev.filter(h => (h.id !== item.id) && (h.url !== item.url)));
+      // Get the identifier (either id or exact target string)
+      const targetStr = item.url || item.target;
 
+      try {
+        // Step 1: Optimistic UI Update (remove instantly from view)
+        setHistoryData(prev => prev.filter(h => {
+           if (item.id && h.id) return h.id !== item.id;
+           return (h.url || h.target) !== targetStr;
+        }));
+
+        // Step 2: Backend Sync
         const response = await fetch(`${API_BASE_URL}/history/delete`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ target: item.url || item.target, id: item.id })
+          body: JSON.stringify({ target: targetStr, id: item.id })
         });
         
-        // Final sync with server
+        if (!response.ok) throw new Error("Delete failed");
+        
+        // Final background refresh to ensure sync
         fetchHistory();
       } catch (err) {
         console.error('Delete error:', err);
-        fetchHistory(); // Revert on error
+        fetchHistory(); // Revert UI if server fails
       }
     };
 
@@ -1614,6 +1629,7 @@ function App() {
       <Router>
         <ScrollToTop />
         <InteractiveBackground />
+        <div id="top" style={{ position: 'absolute', top: 0 }} />
         <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', position: 'relative', zIndex: 10, pointerEvents: 'auto' }}>
           <Navbar />
           <main style={{ flex: 1, padding: '2rem' }}>
