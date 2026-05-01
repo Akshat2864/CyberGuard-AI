@@ -226,11 +226,21 @@ def analyze_url_heuristics(url, fast_mode=False):
     entropy = calculate_entropy(domain_only)
     forensics["entropy"] = round(entropy, 2)
     
-    if entropy > 4.2:
+    # Relaxed entropy threshold (4.8+) to avoid flagging legitimate auto-generated IDs (like Netlify/Vercel)
+    if entropy > 4.8:
         score += 25
         reasons.append("High domain entropy detected (possible DGA/Random generation)")
         forensics["dga_risk"] = "High"
         threat_types.append("Malware/Botnet")
+
+    # === 2.5 TRUSTED PROVIDER ANALYSIS ===
+    # Reduce false positives for legitimate subdomains on trusted platforms
+    trusted_providers = ['.netlify.app', '.github.io', '.vercel.app', '.pages.dev', '.azurewebsites.net']
+    for provider in trusted_providers:
+        if domain.endswith(provider):
+            score = max(0, score - 15)
+            reasons.append(f"Trust Layer: Hosting on verified provider ({provider}) reduces volatility score.")
+            break
 
     # === 3. BREADCRUMB & INTERNAL PROBING ===
     if INTERNAL_PATTERNS_REGEX.search(url):
