@@ -482,10 +482,37 @@ def auth_reset_password():
     data = request.json
     email = data.get('email')
     try:
-        # Send password reset email; Supabase will email the user a link.
-        frontend_url = os.environ.get("FRONTEND_URL", "http://localhost:5173")
-        supabase.auth.reset_password_for_email(email, options={"redirect_to": f"{frontend_url}/"})
-        return jsonify({"message": "Password reset email sent"})
+        # Send a true 6-digit OTP to the user's email (not a magic link)
+        supabase.auth.sign_in_with_otp({
+            "email": email,
+            "options": {
+                "should_create_user": False  # Only send OTP to existing users
+            }
+        })
+        return jsonify({"message": "OTP dispatched"})
+    except Exception as e:
+        return jsonify({"error": str(e)}), 400
+
+@app.route('/auth/verify-otp', methods=['POST'])
+def auth_verify_otp():
+    """Verify email OTP then update the user's password."""
+    data = request.json
+    email = data.get('email')
+    token = data.get('token')
+    new_password = data.get('new_password')
+    try:
+        # Step 1: Verify the 6-digit OTP code and get a live session
+        res = supabase.auth.verify_otp({"email": email, "token": token, "type": "email"})
+        if not res.session:
+            return jsonify({"error": "Invalid or expired OTP code."}), 401
+        # Step 2: Use the session to set the new password
+        user_supabase = create_client(
+            os.environ.get("SUPABASE_URL"),
+            os.environ.get("SUPABASE_KEY")
+        )
+        user_supabase.auth.set_session(res.session.access_token, res.session.refresh_token)
+        user_supabase.auth.update_user({"password": new_password})
+        return jsonify({"message": "Password updated successfully."})
     except Exception as e:
         return jsonify({"error": str(e)}), 400
 
@@ -503,28 +530,7 @@ def auth_oauth():
     except Exception as e:
         return jsonify({"error": str(e)}), 400
 
-@app.route('/auth/verify-otp', methods=['POST'])
-def auth_verify_otp():
-    """Verify email OTP and set a new password."""
-    data = request.json
-    email = data.get('email')
-    token = data.get('token')
-    new_password = data.get('new_password')
-    try:
-        # Step 1: Verify the OTP token to get a session
-        res = supabase.auth.verify_otp({"email": email, "token": token, "type": "recovery"})
-        if not res.session:
-            return jsonify({"error": "Invalid or expired OTP code."}), 401
-        # Step 2: Use the session to update the password
-        user_supabase = create_client(
-            os.environ.get("SUPABASE_URL"),
-            os.environ.get("SUPABASE_KEY")
-        )
-        user_supabase.auth.set_session(res.session.access_token, res.session.refresh_token)
-        user_supabase.auth.update_user({"password": new_password})
-        return jsonify({"message": "Password updated successfully."})
-    except Exception as e:
-        return jsonify({"error": str(e)}), 400
+
 
 @app.route('/auth/mfa/enroll', methods=['POST'])
 def auth_mfa_enroll():
