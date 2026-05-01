@@ -1456,18 +1456,66 @@ const Navbar = () => {
 
 
 const PrivacyPolicy = () => (
-  <div className="glass-panel" style={{ padding: '3rem', maxWidth: '800px', margin: '0 auto', pointerEvents: 'auto', color: 'var(--text-secondary)' }}>
-    <h1 style={{ color: 'white', marginBottom: '1rem' }}>Privacy Policy</h1>
-    <p>Last updated: April 2026</p>
-    <p>CyberGuard AI respects your privacy. We collect URLs and hashes strictly for the purpose of threat analysis and telemetry metadata. We do not sell your personal data. Authentication uses military-grade encryption.</p>
-  </div>
+  <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="legal-page">
+    <div className="legal-header">
+      <div style={{ display: 'inline-flex', alignItems: 'center', gap: '0.5rem', background: 'rgba(59,130,246,0.08)', border: '1px solid rgba(59,130,246,0.2)', borderRadius: 'var(--radius-full)', padding: '0.25rem 0.9rem', fontSize: '0.65rem', letterSpacing: '2.5px', color: 'var(--accent-blue)', marginBottom: '0.7rem', textTransform: 'uppercase' }}>
+        <div style={{ width: '5px', height: '5px', borderRadius: '50%', background: 'var(--accent-blue)', animation: 'pulse 2s infinite' }} />
+        Compliance Protocol
+      </div>
+      <h1 style={{ fontSize: '2.5rem', margin: 0 }}>Privacy <span style={{ background: 'linear-gradient(100deg, #60a5fa, #a78bfa, #f472b6)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>Protocol</span></h1>
+      <p style={{ color: 'var(--text-secondary)', marginTop: '0.5rem' }}>Effective Revision: May 2026.01</p>
+    </div>
+
+    <div className="legal-content">
+      <section className="legal-section">
+        <h3><ShieldCheck size={20} color="var(--accent-blue)" /> Data Encryption & Sovereignty</h3>
+        <p>CyberGuard AI employs military-grade SHA-256 hashing for all URL telemetry. Your search history is encrypted at rest and anonymized before being processed by our heuristic nodes.</p>
+        <p>We do not store plain-text URLs beyond the duration of the active analysis session, ensuring your reconnaissance activities remain private.</p>
+      </section>
+
+      <section className="legal-section">
+        <h3><Fingerprint size={20} color="var(--accent-green)" /> Operator Information</h3>
+        <p>We collect minimal metadata required for system stability:</p>
+        <ul>
+          <li>Anonymized session tokens for authentication</li>
+          <li>System performance metrics to optimize scan latency</li>
+          <li>Cryptographic hashes of detected malicious payloads for global threat intelligence</li>
+        </ul>
+      </section>
+
+      <section className="legal-section">
+        <h3><Activity size={20} color="var(--accent-pink)" /> Third-Party Node Integration</h3>
+        <p>While our core heuristic engine is proprietary, we may query trusted external threat feeds (Google Safe Browsing, VirusTotal) to verify results. These queries are proxied through our encrypted gateway to hide your IP address.</p>
+      </section>
+    </div>
+  </motion.div>
 );
 
 const TermsOfService = () => (
-  <div className="glass-panel" style={{ padding: '3rem', maxWidth: '800px', margin: '0 auto', pointerEvents: 'auto', color: 'var(--text-secondary)' }}>
-    <h1 style={{ color: 'white', marginBottom: '1rem' }}>Terms of Operation</h1>
-    <p>By using CyberGuard AI, you agree not to abuse the API, reverse engineer the heuristic engine, or use the tool for malicious reconnaissance operations.</p>
-  </div>
+  <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="legal-page">
+    <div className="legal-header">
+      <div style={{ display: 'inline-flex', alignItems: 'center', gap: '0.5rem', background: 'rgba(239, 68, 68, 0.08)', border: '1px solid rgba(239, 68, 68, 0.2)', borderRadius: 'var(--radius-full)', padding: '0.25rem 0.9rem', fontSize: '0.65rem', letterSpacing: '2.5px', color: 'var(--accent-red)', marginBottom: '0.7rem', textTransform: 'uppercase' }}>
+        <div style={{ width: '5px', height: '5px', borderRadius: '50%', background: 'var(--accent-red)', animation: 'pulse 2s infinite' }} />
+        Operational Mandate
+      </div>
+      <h1 style={{ fontSize: '2.5rem', margin: 0 }}>Terms of <span style={{ background: 'linear-gradient(100deg, #ef4444, #f59e0b, #f472b6)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>Operation</span></h1>
+      <p style={{ color: 'var(--text-secondary)', marginTop: '0.5rem' }}>System version: 4.2.0-Alpha</p>
+    </div>
+
+    <div className="legal-content">
+      <section className="legal-section">
+        <h3><Zap size={20} color="var(--accent-red)" /> Authorized Usage</h3>
+        <p>CyberGuard AI is a defensive intelligence tool. By initializing this terminal, you agree to use it exclusively for threat detection and academic security research.</p>
+        <p>Unauthorized automated scraping of our heuristic models or attempting to bypass rate limits will result in an immediate permanent hardware ID ban.</p>
+      </section>
+
+      <section className="legal-section">
+        <h3><ShieldAlert size={20} color="var(--accent-pink)" /> Liability Disclaimer</h3>
+        <p>CyberGuard AI provides probability-based risk scores. While our accuracy rate exceeds 99%, we are not liable for any security breaches resulting from false negatives or system downtime.</p>
+        <p>The "Intelligent Void" architecture is provided "as is" without warranties of any kind.</p>
+      </section>
+    </div>
+  </motion.div>
 );
 
 const CookieConsent = () => {
@@ -1484,6 +1532,15 @@ const CookieConsent = () => {
 function App() {
   const [user, setUser] = useState(null);
   const [runtimeError, setRuntimeError] = useState(null);
+  
+  // Internal component to handle scroll reset on navigation
+  const ScrollToTop = () => {
+    const { pathname } = useLocation();
+    useEffect(() => {
+      window.scrollTo(0, 0);
+    }, [pathname]);
+    return null;
+  };
   
   useEffect(() => {
     const catchError = (e) => {
@@ -1504,6 +1561,7 @@ function App() {
   return (
     <AuthContext.Provider value={{ user, login, logout }}>
       <Router>
+        <ScrollToTop />
         <InteractiveBackground />
         <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', position: 'relative', zIndex: 10, pointerEvents: 'auto' }}>
           <Navbar />
