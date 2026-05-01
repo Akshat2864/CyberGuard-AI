@@ -1808,11 +1808,13 @@ const Login = () => {
           </motion.button>
         </form>
         <div style={{ marginTop: '2rem', textAlign: 'center', display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+          {/* OTP Reset — temporarily disabled until Supabase email OTP is configured
           {isLogin && !isForgotPassword && (
             <button type="button" onClick={() => setIsForgotPassword(true)} style={{ background: 'none', border: 'none', color: 'var(--accent-blue)', cursor: 'pointer', fontSize: '0.85rem' }} disabled={isAuthenticating}>
               Lost access? Request a passphrase reset via OTP
             </button>
           )}
+          */}
           <button type="button" onClick={() => { setIsLogin(!isLogin); setIsForgotPassword(false); }} style={{ background: 'none', border: 'none', color: 'var(--text-secondary)', cursor: 'pointer', fontSize: '0.9rem', textDecoration: 'underline' }} disabled={isAuthenticating}>
             {isLogin && !isForgotPassword ? "New Operator? Initialize Registration" : "Return to Authentication Terminal"}
           </button>
