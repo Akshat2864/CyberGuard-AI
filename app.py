@@ -470,6 +470,20 @@ def auth_reset_password():
     except Exception as e:
         return jsonify({"error": str(e)}), 400
 
+@app.route('/auth/oauth', methods=['POST'])
+def auth_oauth():
+    data = request.json
+    provider = data.get('provider')
+    try:
+        frontend_url = os.environ.get("FRONTEND_URL", "http://localhost:5173")
+        res = supabase.auth.sign_in_with_oauth({
+            "provider": provider,
+            "options": {"redirect_to": f"{frontend_url}/oauth-callback"}
+        })
+        return jsonify({"url": res.url})
+    except Exception as e:
+        return jsonify({"error": str(e)}), 400
+
 # 🌐 Home
 @app.route('/')
 def home():
