@@ -732,18 +732,8 @@ p {
   overflow: hidden;
 }
 
-.grad-border-card::before {
-  content: '';
-  position: absolute;
-  inset: -50%;
-  background: conic-gradient(from 0deg, transparent 0deg, rgba(59,130,246,0.6) 60deg, transparent 120deg);
-  animation: spin-border 4s linear infinite;
-  opacity: 0;
-  transition: opacity 0.3s;
-}
-
-.grad-border-card:hover::before {
-  opacity: 1;
+.grad-border-card:hover {
+  transform: translateY(-5px);
 }
 
 .grad-border-inner {
