@@ -109,7 +109,9 @@ const InteractiveBackground = () => {
 };
 
 const Dashboard = () => {
-  const [activeTab, setActiveTab] = useState('email');
+  const navigate = useNavigate();
+  const location = useLocation();
+  const [activeTab, setActiveTab] = useState('url');
   const [scanStatus, setScanStatus] = useState('idle');
   const [isSystemOffline, setIsSystemOffline] = useState(false);
   const [riskLevel, setRiskLevel] = useState('Malicious');
@@ -146,6 +148,14 @@ const Dashboard = () => {
   useEffect(() => {
     fetchAnalytics();
     fetchHistory();
+
+    // Handle auto-scan from Home Page redirect
+    const params = new URLSearchParams(location.search);
+    const urlToScan = params.get('url');
+    if (urlToScan) {
+      setUrlInput(urlToScan);
+      handleScan(urlToScan);
+    }
   }, []);
 
   const fetchAnalytics = async () => {
@@ -254,8 +264,9 @@ const Dashboard = () => {
 
   const pieData = getPieData();
 
-  const handleScan = async () => {
-    if (!urlInput.trim()) {
+  const handleScan = async (forcedUrl = null) => {
+    const targetUrl = forcedUrl || urlInput;
+    if (!targetUrl.trim()) {
       alert('Please enter a URL to scan');
       return;
     }
@@ -265,8 +276,8 @@ const Dashboard = () => {
       const isBatch = activeTab === 'email';
       const endpoint = isBatch ? '/batch-analyze' : '/analyze';
       const payload = isBatch 
-        ? { urls: urlInput.split(',').map(u => u.trim()).filter(Boolean) }
-        : { url: urlInput };
+        ? { urls: targetUrl.split(',').map(u => u.trim()).filter(Boolean) }
+        : { url: targetUrl };
 
       const response = await fetch(`${API_BASE_URL}${endpoint}`, {
         method: 'POST',
@@ -954,6 +965,7 @@ const Footer = () => (
 );
 
 const Home = () => {
+   const navigate = useNavigate();
    const [searchVal, setSearchVal] = useState('');
    const [isSearching, setIsSearching] = useState(false);
    const [showScanLine, setShowScanLine] = useState(false);
@@ -967,33 +979,7 @@ const Home = () => {
 
    const handleAnalyze = async () => {
       if(!searchVal) return;
-      setIsSearching(true);
-      try {
-        const apiUrl = (import.meta.env.VITE_API_URL && import.meta.env.VITE_API_URL !== "undefined") 
-          ? import.meta.env.VITE_API_URL 
-          : (window.location.hostname === 'localhost' ? 'http://localhost:8000' : 'https://cyberguard-ai-7zdf.onrender.com');
-        const response = await fetch(`${apiUrl}/analyze`, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({ url: searchVal })
-        });
-
-        const data = await response.json();
-        
-        if (response.ok) {
-          alert(`Analysis Complete: "${searchVal}" Classified as ${data.result.toUpperCase()} (Confidence ${data.confidence}%). Check Dashboard for detailed heuristics.`);
-          setSearchVal('');
-        } else {
-          alert('Error: ' + data.error);
-        }
-      } catch (error) {
-        console.error('Error:', error);
-        alert('Error connecting to backend.');
-      } finally {
-        setIsSearching(false);
-      }
+      navigate(`/dashboard?url=${encodeURIComponent(searchVal)}`);
    };
 
    return (
