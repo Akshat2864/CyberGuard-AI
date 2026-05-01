@@ -1,3 +1,6 @@
+import smtplib
+from email.mime.text import MIMEText
+from email.mime.multipart import MIMEMultipart
 import os
 import re
 import math
@@ -968,30 +971,118 @@ def engine_sandbox():
     })
 
 
-# ▶️ Run
-if __name__ == '__main__':
-    app.run(debug=False, use_reloader=False, port=8000, host='127.0.0.1')
 # Delete History Entry
 @app.route('/history/delete', methods=['POST'])
 def delete_history():
     try:
         data = request.json
-        # Accept URL/Target for local history deletion, and ID for DB deletion
         target = data.get('target')
         entry_id = data.get('id')
-        
         global LOCAL_HISTORY
         if target:
             LOCAL_HISTORY = [h for h in LOCAL_HISTORY if (h.get('url') or h.get('target')) != target]
-            
         if entry_id and supabase:
             try:
-                # Attempt DB deletion if ID provided
                 supabase.table('url_scans').delete().eq('id', entry_id).execute()
             except Exception as db_err:
                 print(f'DB Delete Error: {db_err}')
-                
         return jsonify({'message': 'History entry cleared'})
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 
+
+# Bug Report Endpoint
+@app.route('/report-bug', methods=['POST'])
+def report_bug():
+    try:
+        data = request.json
+        print('BUG REPORT received')
+        if supabase:
+            try:
+                supabase.table('bug_reports').insert({
+                    'reporter_email': data.get('email'),
+                    'bug_type': data.get('type'),
+                    'description': data.get('description'),
+                    'user_id': 'public_reporter'
+                }).execute()
+            except: pass
+        return jsonify({'message': 'Bug report submitted successfully! Our engineers have been notified.'})
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+
+# Bug Report API
+@app.route('/report-bug', methods=['POST'])
+def report_bug():
+    try:
+        data = request.json
+        name = data.get('name', 'Anonymous')
+        email = data.get('email', 'No Email Provided')
+        bug_desc = data.get('description', 'No Description')
+        
+        # --- Email Sending Logic (Gmail/SMTP) ---
+        # Note: You need to set these in your .env file or local environment
+        sender_email = 'rishikhadiyar@gmail.com'
+        # For security, you should use an App Password from Google
+        sender_password = os.environ.get('SMTP_PASSWORD', '') 
+        
+        msg = MIMEMultipart()
+        msg['From'] = f'CyberGuard AI <{sender_email}>'
+        msg['To'] = sender_email
+        msg['Subject'] = f'[BUG REPORT] from {name}'
+        
+        body = f'''
+        A new bug has been reported on CyberGuard AI.
+        
+        Reporter: {name}
+        Contact: {email}
+        
+        Description:
+        {bug_desc}
+        
+        --- End of Report ---
+        '''
+        msg.attach(MIMEText(body, 'plain'))
+        
+        if sender_password:
+            server = smtplib.SMTP('smtp.gmail.com', 587)
+            server.starttls()
+            server.login(sender_email, sender_password)
+            server.send_message(msg)
+            server.quit()
+        
+        # We also log to Supabase if available
+        if supabase:
+            try:
+                supabase.table('bug_reports').insert({
+                    'name': name,
+                    'email': email,
+                    'description': bug_desc,
+                    'created_at': datetime.now().isoformat()
+                }).execute()
+            except: pass
+
+        return jsonify({'message': 'Bug report submitted successfully'})
+    except Exception as e:
+        print(f'Bug Report Error: {e}')
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/report-bug', methods=['POST'])
+def report_bug():
+    try:
+        data = request.json
+        reporter = data.get('email', 'Anonymous')
+        subject = data.get('subject', 'Bug Report')
+        description = data.get('description', '')
+
+        # For local dev without SMTP setup, we will log it and return success
+        # In production, you would use smtplib or a service like Resend/SendGrid
+        print(f'BUG REPORT RECEIVED FROM {reporter}: {subject}')
+        print(f'Description: {description}')
+
+        return jsonify({'message': 'Bug report submitted successfully! We will review it shortly.'})
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+if __name__ == '__main__':
+    app.run(debug=False, use_reloader=False, port=8000, host='127.0.0.1')

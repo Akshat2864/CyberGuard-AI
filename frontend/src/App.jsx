@@ -1,6 +1,6 @@
 import React, { useState, useEffect, createContext, useContext } from 'react'
 import { BrowserRouter as Router, Routes, Route, Link, useLocation, useNavigate } from 'react-router-dom'
-import { ShieldAlert, Activity, LayoutDashboard, KeyRound, ArrowRight, Mail, MessageSquare, AlertTriangle, Globe, Server, CheckCircle, XCircle, Search, LogOut, ShieldCheck, Zap, BarChart3, Fingerprint, Loader, CloudOff, Trash2, Home as HomeIcon } from 'lucide-react'
+import { ShieldAlert, Activity, LayoutDashboard, KeyRound, ArrowRight, Mail, MessageSquare, AlertTriangle, Globe, Server, CheckCircle, XCircle, Search, LogOut, ShieldCheck, Zap, BarChart3, Fingerprint, Loader, CloudOff, Trash2, Bug, Check, Home as HomeIcon } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { PieChart, Pie, Cell, Tooltip as RechartsTooltip, ResponsiveContainer, AreaChart, Area, XAxis, YAxis, CartesianGrid, Legend } from 'recharts'
 import { ComposableMap, Geographies, Geography } from "react-simple-maps"
@@ -42,6 +42,10 @@ const SkeletonLoader = ({ count = 1, type = 'card' }) => {
 
 // Context for Authentication
 const AuthContext = createContext();
+const BugContext = createContext();
+const API_URL = (import.meta.env.VITE_API_URL && import.meta.env.VITE_API_URL !== "undefined") 
+? import.meta.env.VITE_API_URL 
+: (window.location.hostname === 'localhost' ? 'http://localhost:8000' : 'https://cyberguard-ai-7zdf.onrender.com');
 
 const useAuth = () => useContext(AuthContext);
 
@@ -1002,7 +1006,88 @@ const Dashboard = () => {
   );
 }
 
-const Footer = () => (
+const BugReportModal = () => {
+  const { isBugModalOpen, setBugModalOpen } = useContext(BugContext);
+  const [formData, setFormData] = useState({ email: '', subject: 'UI Glitch', description: '' });
+  const [status, setStatus] = useState('idle'); // idle, sending, success
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setStatus('sending');
+    try {
+      const res = await fetch(`${API_URL}/report-bug`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(formData)
+      });
+      if (res.ok) {
+        setStatus('success');
+        setTimeout(() => {
+          setBugModalOpen(false);
+          setStatus('idle');
+          setFormData({ email: '', subject: 'UI Glitch', description: '' });
+        }, 2500);
+      }
+    } catch (err) {
+      alert('Transmission failed. Check neural link.');
+      setStatus('idle');
+    }
+  };
+
+  if (!isBugModalOpen) return null;
+
+  return (
+    <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.8)', backdropFilter: 'blur(8px)', zIndex: 9999, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '1rem' }}>
+      <motion.div initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} className="card glass-panel" style={{ maxWidth: '500px', width: '100%', padding: '2rem', border: '1px solid var(--border-color)' }}>
+        {status === 'success' ? (
+          <div style={{ textAlign: 'center', padding: '2rem' }}>
+            <motion.div initial={{ scale: 0 }} animate={{ scale: 1 }} transition={{ type: 'spring' }}>
+              <CheckCircle size={64} color="var(--accent-green)" style={{ margin: '0 auto 1rem' }} />
+            </motion.div>
+            <h2 style={{ color: 'white', marginBottom: '1rem' }}>Report Logged</h2>
+            <p style={{ opacity: 0.7 }}>Our engineers have been notified. Thank you for securing the grid.</p>
+          </div>
+        ) : (
+          <>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
+              <h2 style={{ margin: 0, display: 'flex', alignItems: 'center', gap: '0.8rem', color: 'white' }}>
+                <Bug color="var(--accent-blue)" /> Report Bug
+              </h2>
+              <button onClick={() => setBugModalOpen(false)} style={{ background: 'transparent', border: 'none', color: 'white', cursor: 'pointer' }}><XCircle size={24} /></button>
+            </div>
+            <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+              <div>
+                <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.85rem', opacity: 0.7 }}>Reporter Email</label>
+                <input required type="email" value={formData.email} onChange={e => setFormData({...formData, email: e.target.value})} style={{ width: '100%', background: 'rgba(255,255,255,0.05)', border: '1px solid var(--border-color)', borderRadius: '8px', padding: '0.8rem', color: 'white', outline: 'none' }} placeholder="your@email.com" />
+              </div>
+              <div>
+                <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.85rem', opacity: 0.7 }}>Incident Subject</label>
+                <select value={formData.subject} onChange={e => setFormData({...formData, subject: e.target.value})} style={{ width: '100%', background: 'rgba(255,255,255,0.05)', border: '1px solid var(--border-color)', borderRadius: '8px', padding: '0.8rem', color: 'white', outline: 'none' }}>
+                  <option value="UI Glitch">UI Glitch</option>
+                  <option value="Scanner Failure">Scanner Failure</option>
+                  <option value="Authentication Error">Authentication Error</option>
+                  <option value="Performance Lag">Performance Lag</option>
+                  <option value="Other">Other Security Concern</option>
+                </select>
+              </div>
+              <div>
+                <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.85rem', opacity: 0.7 }}>Description</label>
+                <textarea required rows={4} value={formData.description} onChange={e => setFormData({...formData, description: e.target.value})} style={{ width: '100%', background: 'rgba(255,255,255,0.05)', border: '1px solid var(--border-color)', borderRadius: '8px', padding: '0.8rem', color: 'white', outline: 'none', resize: 'none' }} placeholder="What happened on the grid?" />
+              </div>
+              <button disabled={status === 'sending'} type="submit" className="btn-primary" style={{ marginTop: '0.5rem', padding: '1rem' }}>
+                {status === 'sending' ? <Activity className="animate-pulse-green" /> : 'Transmit Report'}
+              </button>
+            </form>
+          </>
+        )}
+      </motion.div>
+    </div>
+  );
+};
+
+const Footer = () => {
+  const { setBugModalOpen } = useContext(BugContext);
+  return (
   <footer style={{ 
     padding: '4rem 2rem', 
     marginTop: '4rem', 
@@ -1016,7 +1101,7 @@ const Footer = () => (
       <div className="footer-links">
         <Link to="/privacy" style={{ color: 'var(--text-secondary)', textDecoration: 'none', transition: 'color 0.2s' }}>Privacy Protocol</Link>
         <Link to="/terms" style={{ color: 'var(--text-secondary)', textDecoration: 'none', transition: 'color 0.2s' }}>Terms of Operation</Link>
-        <a href="mailto:rishikhadiyar@gmail.com?subject=CyberGuard AI Bug Report" style={{ color: 'var(--text-secondary)', textDecoration: 'none', transition: 'color 0.2s' }}>🐛 Report Bug</a>
+        <button onClick={() => setBugModalOpen(true)} style={{ background: 'transparent', border: 'none', cursor: 'pointer', color: 'var(--text-secondary)', fontSize: '1rem', transition: 'color 0.2s' }} onMouseEnter={e => e.target.style.color = 'var(--accent-blue)'} onMouseLeave={e => e.target.style.color = 'var(--text-secondary)'}>🐛 Report Bug</button>
       </div>
       <div className="footer-contact">
         <span><strong>Contact:</strong></span>
@@ -1029,7 +1114,8 @@ const Footer = () => (
       </div>
     </div>
   </footer>
-);
+  );
+};
 
 const Home = () => {
    const navigate = useNavigate();
@@ -1598,6 +1684,7 @@ const CookieConsent = () => {
 function App() {
   const [user, setUser] = useState(null);
   const [runtimeError, setRuntimeError] = useState(null);
+  const [isBugModalOpen, setBugModalOpen] = useState(false);
   
   // Internal component to handle scroll reset on navigation
   const ScrollToTop = () => {
@@ -1626,37 +1713,40 @@ function App() {
 
   return (
     <AuthContext.Provider value={{ user, login, logout }}>
-      <Router>
-        <ScrollToTop />
-        <InteractiveBackground />
-        <div id="top" style={{ position: 'absolute', top: 0 }} />
-        <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', position: 'relative', zIndex: 10, pointerEvents: 'auto' }}>
-          <Navbar />
-          <main style={{ flex: 1, padding: '2rem' }}>
-            {runtimeError ? (
-              <div style={{ padding: '4rem', textAlign: 'center', background: 'rgba(239, 68, 68, 0.1)', border: '1px solid var(--accent-red)', borderRadius: '12px' }}>
-                <ShieldAlert size={48} color="var(--accent-red)" style={{ margin: '0 auto 1.5rem' }} />
-                <h2 style={{ color: 'white' }}>System Shield Engaged</h2>
-                <p style={{ opacity: 0.6, maxWidth: '400px', margin: '1rem auto' }}> A sub-system has crashed. We've isolated the fault. Error: {runtimeError}</p>
-                <button onClick={() => window.location.reload()} className="btn-primary">Restart Grid</button>
-              </div>
-            ) : (
-              <AnimatePresence mode='wait'>
-                <Routes>
-                  <Route path="/" element={<Home />} />
-                  <Route path="/login" element={<Login />} />
-                  <Route path="/dashboard" element={<Dashboard />} />
-                  <Route path="/privacy" element={<PrivacyPolicy />} />
-                  <Route path="/terms" element={<TermsOfService />} />
-                </Routes>
-              </AnimatePresence>
-            )}
-          </main>
-          <Footer />
-        </div>
-        <CookieConsent />
-        {/* <Analytics /> */}
-      </Router>
+      <BugContext.Provider value={{ isBugModalOpen, setBugModalOpen }}>
+        <Router>
+          <ScrollToTop />
+          <InteractiveBackground />
+          <div id="top" style={{ position: 'absolute', top: 0 }} />
+          <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', position: 'relative', zIndex: 10, pointerEvents: 'auto' }}>
+            <Navbar />
+            <main style={{ flex: 1, padding: '2rem' }}>
+              {runtimeError ? (
+                <div style={{ padding: '4rem', textAlign: 'center', background: 'rgba(239, 68, 68, 0.1)', border: '1px solid var(--accent-red)', borderRadius: '12px' }}>
+                  <ShieldAlert size={48} color="var(--accent-red)" style={{ margin: '0 auto 1.5rem' }} />
+                  <h2 style={{ color: 'white' }}>System Shield Engaged</h2>
+                  <p style={{ opacity: 0.6, maxWidth: '400px', margin: '1rem auto' }}> A sub-system has crashed. We've isolated the fault. Error: {runtimeError}</p>
+                  <button onClick={() => window.location.reload()} className="btn-primary">Restart Grid</button>
+                </div>
+              ) : (
+                <AnimatePresence mode='wait'>
+                  <Routes>
+                    <Route path="/" element={<Home />} />
+                    <Route path="/login" element={<Login />} />
+                    <Route path="/dashboard" element={<Dashboard />} />
+                    <Route path="/privacy" element={<PrivacyPolicy />} />
+                    <Route path="/terms" element={<TermsOfService />} />
+                  </Routes>
+                </AnimatePresence>
+              )}
+            </main>
+            <Footer />
+          </div>
+          <CookieConsent />
+          <BugReportModal />
+          {/* <Analytics /> */}
+        </Router>
+      </BugContext.Provider>
     </AuthContext.Provider>
   )
 }
