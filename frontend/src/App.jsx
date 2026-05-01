@@ -1479,6 +1479,14 @@ const Home = () => {
 const Login = () => {
   const [isLogin, setIsLogin] = useState(true);
   const [isForgotPassword, setIsForgotPassword] = useState(false);
+  // OTP flow state
+  const [otpStep, setOtpStep] = useState(false); // true = show OTP + new password
+  const [otpCode, setOtpCode] = useState('');
+  const [newPassword, setNewPassword] = useState('');
+  // MFA flow state
+  const [mfaStep, setMfaStep] = useState(false); // true = show TOTP code prompt
+  const [mfaCode, setMfaCode] = useState('');
+  const [mfaSession, setMfaSession] = useState(null); // { access_token, refresh_token, factor_id }
   const [isAuthenticating, setIsAuthenticating] = useState(false);
   const [authError, setAuthError] = useState(null);
   const [authSuccess, setAuthSuccess] = useState(null);
@@ -1518,13 +1526,64 @@ const Login = () => {
       });
       const data = await response.json();
       if(response.ok) {
-        setAuthSuccess('Handshake verified. Reset instructions dispatched to secure relay.');
-        setTimeout(() => setIsForgotPassword(false), 3000);
+        setAuthSuccess('OTP code dispatched to your secure relay. Check your inbox.');
+        setOtpStep(true); // Switch to OTP verification screen
       } else {
         setAuthError(data.error || 'Identity relay failure.');
       }
     } catch(err) {
       setAuthError('Grid link timeout. Handshake failed.');
+    } finally {
+      setIsAuthenticating(false);
+    }
+  };
+
+  const handleVerifyOtp = async (e) => {
+    e.preventDefault();
+    setAuthError(null);
+    setAuthSuccess(null);
+    if (otpCode.length !== 6) return setAuthError('Security token must be exactly 6 digits.');
+    if (newPassword.length < 8) return setAuthError('New passphrase must be at least 8 characters.');
+    setIsAuthenticating(true);
+    try {
+      const response = await fetch(`${API_URL}/auth/verify-otp`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: formData.email, token: otpCode, new_password: newPassword })
+      });
+      const data = await response.json();
+      if(response.ok) {
+        setAuthSuccess('Passphrase updated. Authentication restored.');
+        setTimeout(() => { setOtpStep(false); setIsForgotPassword(false); setOtpCode(''); setNewPassword(''); }, 2000);
+      } else {
+        setAuthError(data.error || 'Token verification failed.');
+      }
+    } catch(err) {
+      setAuthError('Grid link timeout.');
+    } finally {
+      setIsAuthenticating(false);
+    }
+  };
+
+  const handleMfaVerify = async (e) => {
+    e.preventDefault();
+    setAuthError(null);
+    setIsAuthenticating(true);
+    try {
+      const response = await fetch(`${API_URL}/auth/mfa/verify`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ ...mfaSession, code: mfaCode })
+      });
+      const data = await response.json();
+      if(response.ok) {
+        setAuthSuccess('MFA handshake confirmed. Access granted.');
+        setTimeout(() => { login({ name: mfaSession.name, id: mfaSession.userId, access_token: data.access_token }); navigate('/dashboard'); }, 1200);
+      } else {
+        setAuthError(data.error || 'Invalid authenticator code.');
+      }
+    } catch(err) {
+      setAuthError('Grid link timeout.');
     } finally {
       setIsAuthenticating(false);
     }
@@ -1544,11 +1603,26 @@ const Login = () => {
       });
       const data = await response.json();
       if(response.ok) {
-        setAuthSuccess('Handshake confirmed. Syncing neural grid...');
-        setTimeout(() => {
-          login({ name: data.name || formData.email.split('@')[0], id: data.user });
-          navigate('/dashboard');
-        }, 1500);
+        // Check if account has MFA enabled
+        if (data.mfa_required && data.factor_id) {
+          setMfaSession({
+            access_token: data.access_token,
+            refresh_token: data.refresh_token,
+            factor_id: data.factor_id,
+            name: data.name || formData.email.split('@')[0],
+            userId: data.user
+          });
+          setMfaStep(true);
+          setAuthSuccess('MFA required. Enter your authenticator code.');
+        } else {
+          setAuthSuccess('Handshake confirmed. Syncing neural grid...');
+          setTimeout(() => {
+            login({ name: data.name || formData.email.split('@')[0], id: data.user });
+            navigate('/dashboard');
+          }, 1500);
+        }
+      } else {
+        setAuthError(data.error || 'Access denied. Signature mismatch.');
       }
     } catch(err) {
       setAuthError('Handshake protocol failed. Server unreachable.');
@@ -1586,14 +1660,67 @@ const Login = () => {
 
   return (
     <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} transition={{ duration: 0.4 }} style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '75vh', pointerEvents: 'none' }}>
-      <div className="card glass-panel" style={{ width: '100%', maxWidth: '420px', padding: '3rem 2.5rem', position: 'relative', overflow: 'hidden', pointerEvents: 'auto' }}>
+      <div className="card glass-panel" style={{ width: '100%', maxWidth: '440px', padding: '3rem 2.5rem', position: 'relative', overflow: 'hidden', pointerEvents: 'auto' }}>
         {isAuthenticating && <div className="scanner-overlay" style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, pointerEvents: 'none', opacity: 0.6 }} />}
+
+        {/* ── MFA Challenge Screen ── */}
+        {mfaStep && (
+          <>
+            <div style={{ textAlign: 'center', marginBottom: '2rem' }}>
+              <motion.div animate={{ scale: [1, 1.1, 1] }} transition={{ duration: 2, repeat: Infinity }}>
+                <ShieldCheck size={52} style={{ color: 'var(--accent-green)' }} />
+              </motion.div>
+              <h2 style={{ marginTop: '1rem', fontSize: '1.8rem' }}>Two-Factor Auth</h2>
+              <p style={{ marginTop: '0.5rem', fontSize: '0.9rem', color: 'var(--text-secondary)' }}>Enter the 6-digit code from your authenticator app</p>
+            </div>
+            <AnimatePresence>
+              {authError && <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} className="auth-error-vortex" style={{ marginBottom: '1.5rem' }}><ShieldAlert size={20} /> {authError}</motion.div>}
+              {authSuccess && <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} className="handshake-success" style={{ marginBottom: '1.5rem' }}><ShieldCheck size={20} /> {authSuccess}</motion.div>}
+            </AnimatePresence>
+            <form onSubmit={handleMfaVerify} style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
+              <input type="text" inputMode="numeric" maxLength={6} placeholder="000000" className="input-field" value={mfaCode} onChange={e => setMfaCode(e.target.value.replace(/\D/g,''))} style={{ textAlign: 'center', fontSize: '2rem', letterSpacing: '0.5rem' }} required disabled={isAuthenticating} />
+              <motion.button whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }} className="btn-primary" style={{ padding: '1rem' }} disabled={isAuthenticating}>
+                {isAuthenticating ? 'Verifying...' : 'Confirm Identity'}
+              </motion.button>
+            </form>
+            <button type="button" onClick={() => { setMfaStep(false); setMfaCode(''); setAuthError(null); setAuthSuccess(null); }} style={{ marginTop: '1.5rem', background: 'none', border: 'none', color: 'var(--text-secondary)', cursor: 'pointer', width: '100%', fontSize: '0.85rem' }}>← Back to login</button>
+          </>
+        )}
+
+        {/* ── OTP Verification Screen ── */}
+        {!mfaStep && otpStep && (
+          <>
+            <div style={{ textAlign: 'center', marginBottom: '2rem' }}>
+              <motion.div animate={{ scale: [1, 1.08, 1] }} transition={{ duration: 2, repeat: Infinity }}>
+                <Mail size={52} style={{ color: 'var(--accent-blue)' }} />
+              </motion.div>
+              <h2 style={{ marginTop: '1rem', fontSize: '1.8rem' }}>Enter OTP Code</h2>
+              <p style={{ marginTop: '0.5rem', fontSize: '0.9rem', color: 'var(--text-secondary)' }}>Check your inbox for a 6-digit security token</p>
+            </div>
+            <AnimatePresence>
+              {authError && <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} className="auth-error-vortex" style={{ marginBottom: '1.5rem' }}><ShieldAlert size={20} /> {authError}</motion.div>}
+              {authSuccess && <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} className="handshake-success" style={{ marginBottom: '1.5rem' }}><ShieldCheck size={20} /> {authSuccess}</motion.div>}
+            </AnimatePresence>
+            <form onSubmit={handleVerifyOtp} style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
+              <input type="text" inputMode="numeric" maxLength={6} placeholder="6-digit code" className="input-field" value={otpCode} onChange={e => setOtpCode(e.target.value.replace(/\D/g,''))} style={{ textAlign: 'center', fontSize: '2rem', letterSpacing: '0.5rem' }} required disabled={isAuthenticating} />
+              <input type="password" placeholder="New Passphrase" className="input-field" value={newPassword} onChange={e => setNewPassword(e.target.value)} required disabled={isAuthenticating} />
+              <motion.button whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }} className="btn-primary" style={{ padding: '1rem' }} disabled={isAuthenticating}>
+                {isAuthenticating ? 'Verifying...' : 'Reset Passphrase'}
+              </motion.button>
+            </form>
+            <button type="button" onClick={() => { setOtpStep(false); setOtpCode(''); setNewPassword(''); setAuthError(null); setAuthSuccess(null); }} style={{ marginTop: '1.5rem', background: 'none', border: 'none', color: 'var(--text-secondary)', cursor: 'pointer', width: '100%', fontSize: '0.85rem' }}>← Back</button>
+          </>
+        )}
+
+        {/* ── Standard Login / Register / Forgot ── */}
+        {!mfaStep && !otpStep && (
+          <>
         <div style={{ textAlign: 'center', marginBottom: '2.5rem' }}>
           <motion.div animate={isAuthenticating ? { rotate: 360, color: 'var(--accent-blue)' } : {}} transition={{ duration: 1.5, repeat: Infinity, ease: "linear" }} style={{ display: 'inline-block' }}>
             <KeyRound size={48} style={{ color: isAuthenticating ? 'var(--accent-blue)' : 'var(--text-secondary)', transition: 'color 0.3s' }} />
           </motion.div>
           <h2 style={{ marginTop: '1rem', fontSize: '1.8rem' }}>{isAuthenticating ? 'Processing...' : (isForgotPassword ? 'Reset Passphrase' : (isLogin ? 'Secure Access' : 'Create Identity'))}</h2>
-          <p style={{ marginTop: '0.5rem', fontSize: '0.9rem' }}>{isForgotPassword ? 'Submit your email to receive recovery instructions.' : 'Military-grade encrypted protocol connection'}</p>
+          <p style={{ marginTop: '0.5rem', fontSize: '0.9rem' }}>{isForgotPassword ? 'Submit your email — you will receive a 6-digit OTP code.' : 'Military-grade encrypted protocol connection'}</p>
         </div>
         {/* Handshake Feedback UI */}
         <AnimatePresence>
@@ -1683,13 +1810,15 @@ const Login = () => {
         <div style={{ marginTop: '2rem', textAlign: 'center', display: 'flex', flexDirection: 'column', gap: '1rem' }}>
           {isLogin && !isForgotPassword && (
             <button type="button" onClick={() => setIsForgotPassword(true)} style={{ background: 'none', border: 'none', color: 'var(--accent-blue)', cursor: 'pointer', fontSize: '0.85rem' }} disabled={isAuthenticating}>
-              Lost access? Request a passphrase reset
+              Lost access? Request a passphrase reset via OTP
             </button>
           )}
           <button type="button" onClick={() => { setIsLogin(!isLogin); setIsForgotPassword(false); }} style={{ background: 'none', border: 'none', color: 'var(--text-secondary)', cursor: 'pointer', fontSize: '0.9rem', textDecoration: 'underline' }} disabled={isAuthenticating}>
             {isLogin && !isForgotPassword ? "New Operator? Initialize Registration" : "Return to Authentication Terminal"}
           </button>
         </div>
+          </>
+        )}
       </div>
     </motion.div>
   );

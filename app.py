@@ -454,7 +454,26 @@ def auth_login():
     password = data.get('password')
     try:
         res = supabase.auth.sign_in_with_password({"email": email, "password": password})
-        return jsonify({"message": "Login successful", "user": res.user.id if res.user else None, "name": res.user.user_metadata.get("full_name", email) if res.user else email })
+        user = res.user
+        session = res.session
+        name = user.user_metadata.get("full_name", email) if user else email
+
+        # Check if the user has TOTP MFA enrolled
+        factors = supabase.auth.mfa.list_factors()
+        totp_factors = [f for f in (factors.totp or []) if f.status == 'verified']
+
+        if totp_factors:
+            # MFA is active — return tokens so frontend can challenge
+            return jsonify({
+                "mfa_required": True,
+                "factor_id": totp_factors[0].id,
+                "access_token": session.access_token if session else None,
+                "refresh_token": session.refresh_token if session else None,
+                "user": user.id if user else None,
+                "name": name
+            })
+
+        return jsonify({"message": "Login successful", "user": user.id if user else None, "name": name})
     except Exception as e:
         return jsonify({"error": str(e)}), 401
 
@@ -481,6 +500,93 @@ def auth_oauth():
             "options": {"redirect_to": f"{frontend_url}/oauth-callback"}
         })
         return jsonify({"url": res.url})
+    except Exception as e:
+        return jsonify({"error": str(e)}), 400
+
+@app.route('/auth/verify-otp', methods=['POST'])
+def auth_verify_otp():
+    """Verify email OTP and set a new password."""
+    data = request.json
+    email = data.get('email')
+    token = data.get('token')
+    new_password = data.get('new_password')
+    try:
+        # Step 1: Verify the OTP token to get a session
+        res = supabase.auth.verify_otp({"email": email, "token": token, "type": "recovery"})
+        if not res.session:
+            return jsonify({"error": "Invalid or expired OTP code."}), 401
+        # Step 2: Use the session to update the password
+        user_supabase = create_client(
+            os.environ.get("SUPABASE_URL"),
+            os.environ.get("SUPABASE_KEY")
+        )
+        user_supabase.auth.set_session(res.session.access_token, res.session.refresh_token)
+        user_supabase.auth.update_user({"password": new_password})
+        return jsonify({"message": "Password updated successfully."})
+    except Exception as e:
+        return jsonify({"error": str(e)}), 400
+
+@app.route('/auth/mfa/enroll', methods=['POST'])
+def auth_mfa_enroll():
+    """Enroll a user in TOTP MFA. Returns a QR code URI and secret."""
+    data = request.json
+    access_token = data.get('access_token')
+    refresh_token = data.get('refresh_token')
+    try:
+        user_supabase = create_client(
+            os.environ.get("SUPABASE_URL"),
+            os.environ.get("SUPABASE_KEY")
+        )
+        user_supabase.auth.set_session(access_token, refresh_token)
+        res = user_supabase.auth.mfa.enroll({"factor_type": "totp", "friendly_name": "CyberGuard AI"})
+        return jsonify({
+            "factor_id": res.id,
+            "totp_uri": res.totp.uri,
+            "secret": res.totp.secret,
+            "qr_code": res.totp.qr_code
+        })
+    except Exception as e:
+        return jsonify({"error": str(e)}), 400
+
+@app.route('/auth/mfa/verify', methods=['POST'])
+def auth_mfa_verify():
+    """Verify a TOTP code to complete MFA challenge."""
+    data = request.json
+    access_token = data.get('access_token')
+    refresh_token = data.get('refresh_token')
+    factor_id = data.get('factor_id')
+    code = data.get('code')
+    try:
+        user_supabase = create_client(
+            os.environ.get("SUPABASE_URL"),
+            os.environ.get("SUPABASE_KEY")
+        )
+        user_supabase.auth.set_session(access_token, refresh_token)
+        challenge = user_supabase.auth.mfa.challenge({"factor_id": factor_id})
+        res = user_supabase.auth.mfa.verify({
+            "factor_id": factor_id,
+            "challenge_id": challenge.id,
+            "code": code
+        })
+        return jsonify({"message": "MFA verified", "access_token": res.access_token})
+    except Exception as e:
+        return jsonify({"error": str(e)}), 401
+
+@app.route('/auth/mfa/unenroll', methods=['POST'])
+def auth_mfa_unenroll():
+    """Remove a TOTP factor from the user's account."""
+    data = request.json
+    access_token = data.get('access_token')
+    refresh_token = data.get('refresh_token')
+    factor_id = data.get('factor_id')
+    try:
+        user_supabase = create_client(
+            os.environ.get("SUPABASE_URL"),
+            os.environ.get("SUPABASE_KEY")
+        )
+        user_supabase.auth.set_session(access_token, refresh_token)
+        user_supabase.auth.mfa.unenroll({"factor_id": factor_id})
+        return jsonify({"message": "MFA disabled successfully."})
     except Exception as e:
         return jsonify({"error": str(e)}), 400
 
