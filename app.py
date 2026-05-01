@@ -971,3 +971,27 @@ def engine_sandbox():
 # ▶️ Run
 if __name__ == '__main__':
     app.run(debug=False, use_reloader=False, port=8000, host='127.0.0.1')
+# Delete History Entry
+@app.route('/history/delete', methods=['POST'])
+def delete_history():
+    try:
+        data = request.json
+        # Accept URL/Target for local history deletion, and ID for DB deletion
+        target = data.get('target')
+        entry_id = data.get('id')
+        
+        global LOCAL_HISTORY
+        if target:
+            LOCAL_HISTORY = [h for h in LOCAL_HISTORY if (h.get('url') or h.get('target')) != target]
+            
+        if entry_id and supabase:
+            try:
+                # Attempt DB deletion if ID provided
+                supabase.table('url_scans').delete().eq('id', entry_id).execute()
+            except Exception as db_err:
+                print(f'DB Delete Error: {db_err}')
+                
+        return jsonify({'message': 'History entry cleared'})
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+

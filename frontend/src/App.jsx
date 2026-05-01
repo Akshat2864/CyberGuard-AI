@@ -1,6 +1,6 @@
 import React, { useState, useEffect, createContext, useContext } from 'react'
 import { BrowserRouter as Router, Routes, Route, Link, useLocation, useNavigate } from 'react-router-dom'
-import { ShieldAlert, Activity, LayoutDashboard, KeyRound, ArrowRight, Mail, MessageSquare, AlertTriangle, Globe, Server, CheckCircle, XCircle, Search, LogOut, ShieldCheck, Zap, BarChart3, Fingerprint, Loader, CloudOff, Home as HomeIcon } from 'lucide-react'
+import { ShieldAlert, Activity, LayoutDashboard, KeyRound, ArrowRight, Mail, MessageSquare, AlertTriangle, Globe, Server, CheckCircle, XCircle, Search, LogOut, ShieldCheck, Zap, BarChart3, Fingerprint, Loader, CloudOff, Trash2, Home as HomeIcon } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { PieChart, Pie, Cell, Tooltip as RechartsTooltip, ResponsiveContainer, AreaChart, Area, XAxis, YAxis, CartesianGrid, Legend } from 'recharts'
 import { ComposableMap, Geographies, Geography } from "react-simple-maps"
@@ -397,6 +397,41 @@ const Dashboard = () => {
       setScanStatus('idle');
     }
   };
+
+    const handleHistoryClick = (item) => {
+      const target = item.url || item.target;
+      if (target.startsWith('Identity Check: ')) {
+        const email = target.replace('Identity Check: ', '');
+        setActiveTab('breach');
+        setEmailInput(email);
+        setTimeout(() => {
+           const btn = document.querySelector('button[onClick*="handleEmailCheck"]');
+           if(btn) btn.click();
+        }, 100);
+      } else {
+        setActiveTab('urgent');
+        setUrlInput(target);
+        handleScan(target);
+      }
+    };
+
+    const deleteHistoryItem = async (e, item) => {
+      e.stopPropagation(); 
+      if(!window.confirm('Clear this intelligence entry?')) return;
+      
+      try {
+        const response = await fetch(`${API_BASE_URL}/history/delete`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ target: item.url || item.target, id: item.id })
+        });
+        if(response.ok) {
+          fetchHistory(); 
+        }
+      } catch (err) {
+        console.error('Delete error:', err);
+      }
+    };
 
   const handleReset = () => {
     setScanStatus('idle');
@@ -912,16 +947,33 @@ const Dashboard = () => {
                      <th style={{ padding: '0.8rem 0.5rem', backgroundColor: 'var(--bg-card)' }}>Target</th>
                      <th style={{ padding: '0.8rem 0.5rem', backgroundColor: 'var(--bg-card)' }}>State</th>
                      <th style={{ padding: '0.8rem 0.5rem', backgroundColor: 'var(--bg-card)' }}>Confidence</th>
+                     <th style={{ padding: '0.8rem 0.5rem', backgroundColor: 'var(--bg-card)', textAlign: 'right' }}>Action</th>
                    </tr>
                  </thead>
                  <tbody>
                    {historyData.map((row, idx) => (
-                     <tr key={row.id || idx} style={{ borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
+                     <tr 
+                       key={row.id || idx} 
+                       onClick={() => handleHistoryClick(row)}
+                       style={{ borderBottom: '1px solid rgba(255,255,255,0.05)', cursor: 'pointer', transition: 'background 0.2s' }}
+                       onMouseEnter={(e) => e.currentTarget.style.background = 'rgba(255,255,255,0.03)'}
+                       onMouseLeave={(e) => e.currentTarget.style.background = 'transparent'}
+                     >
                        <td style={{ padding: '0.8rem 0.5rem', color: 'var(--text-secondary)' }}>#{idx + 1}</td>
                        <td style={{ padding: '0.8rem 0.5rem', color: 'var(--accent-blue)' }}>{row.created_at ? new Date(row.created_at).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit', second:'2-digit'}) : 'Real-time'}</td>
                        <td style={{ padding: '0.8rem 0.5rem', fontFamily: 'monospace', color: '#fff', wordBreak: 'break-all' }}>{row.url || row.target}</td>
                        <td style={{ padding: '0.8rem 0.5rem', color: row.result === 'Safe' ? '#10b981' : row.result === 'Suspicious' ? '#f59e0b' : '#ef4444' }}>{row.result || row.status}</td>
                        <td style={{ padding: '0.8rem 0.5rem' }}>{row.confidence || row.confidence}%</td>
+                       <td style={{ padding: '0.8rem 0.5rem', textAlign: 'right' }}>
+                          <button 
+                            onClick={(e) => deleteHistoryItem(e, row)}
+                            style={{ background: 'transparent', border: 'none', color: 'var(--accent-red)', cursor: 'pointer', padding: '0.4rem', opacity: 0.6 }}
+                            onMouseEnter={(e) => e.currentTarget.style.opacity = 1}
+                            onMouseLeave={(e) => e.currentTarget.style.opacity = 0.6}
+                          >
+                            <Trash2 size={16} />
+                          </button>
+                       </td>
                      </tr>
                    ))}
                  </tbody>
