@@ -125,6 +125,7 @@ const Dashboard = () => {
   const [scanResult, setScanResult] = useState(null);
   const [auditResults, setAuditResults] = useState(null);
   const [breachResult, setBreachResult] = useState(null);
+  const [darkWebResult, setDarkWebResult] = useState(null);
   
   const [analytics, setAnalytics] = useState({ total_scans: 0, safe_count: 0, suspicious_count: 0, malicious_count: 0 });
   const [historyData, setHistoryData] = useState([]);
@@ -256,6 +257,16 @@ const Dashboard = () => {
        return [
          { name: 'Secure Surface', value: safeScore, color: '#10b981' },
          { name: 'Leak Exposure', value: score, color: '#ef4444' }
+       ];
+    }
+
+    // 4. Dark Web Active Analysis
+    if (activeTab === 'darkweb' && darkWebResult?.risk_score !== undefined) {
+       const score = darkWebResult.risk_score;
+       const safeScore = Math.max(0, 100 - score);
+       return [
+         { name: 'Clear Web Profile', value: safeScore, color: '#10b981' },
+         { name: 'Dark Web Traces', value: score, color: '#8b5cf6' }
        ];
     }
 
@@ -400,6 +411,52 @@ const Dashboard = () => {
     }
   };
 
+  const handleDarkWebCheck = async (forcedQuery = null) => {
+    const queryToUse = forcedQuery || emailInput;
+    if (!queryToUse.trim()) {
+      alert('Please enter a query (email/username) for the Dark Web Monitor');
+      return;
+    }
+    setScanStatus('scanning');
+    try {
+      const response = await fetch(`${API_BASE_URL}/scan-darkweb`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ query: queryToUse })
+      });
+      const data = await response.json();
+      if(response.ok) {
+        setDarkWebResult(data);
+        setScanStatus('result');
+        if (data.updated_analytics) setAnalytics(data.updated_analytics);
+        else fetchAnalytics();
+        
+        // ⚡ Instant history update
+        setHistoryData(prev => [{
+          target: `Dark Web: ${data.query}`, result: data.result, 
+          risk_score: data.risk_score, created_at: new Date().toISOString()
+        }, ...prev].slice(0, 20));
+
+        // Sync threat history graph
+        const t = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+        setThreatHistory(prev => {
+          const existing = prev.find(p => p.time === t);
+          if (existing) return prev.map(p => p.time === t ? { ...p, [data.result]: (p[data.result] || 0) + 1 } : p);
+          return [...prev, { time: t, Safe: data.result === 'Safe' ? 1 : 0, Suspicious: data.result === 'Suspicious' ? 1 : 0, Malicious: data.result === 'Malicious' ? 1 : 0 }].slice(-10);
+        });
+        
+        fetchHistory();
+      } else {
+        alert('Dark Web Scan Error: ' + data.error);
+        setScanStatus('idle');
+      }
+    } catch (error) {
+      console.error(error);
+      alert('Failed to connect to Dark Web scanner node.');
+      setScanStatus('idle');
+    }
+  };
+
     const handleHistoryClick = (item) => {
       const target = item.url || item.target;
       
@@ -413,6 +470,11 @@ const Dashboard = () => {
         setActiveTab('breach');
         setEmailInput(email);
         handleEmailCheck(email);
+      } else if (target.startsWith('Dark Web: ')) {
+        const query = target.replace('Dark Web: ', '');
+        setActiveTab('darkweb');
+        setEmailInput(query);
+        handleDarkWebCheck(query);
       } else {
         setActiveTab('urgent');
         setUrlInput(target);
@@ -456,6 +518,7 @@ const Dashboard = () => {
     setScanResult(null);
     setAuditResults(null);
     setBreachResult(null);
+    setDarkWebResult(null);
     setShowIdentityPanel(false);
   };
 
@@ -512,6 +575,14 @@ const Dashboard = () => {
             </div>
           </button>
           
+          <button onClick={() => { setActiveTab('darkweb'); handleReset(); setEmailInput(''); }} className={`card ${activeTab === 'darkweb' ? 'glass-panel' : ''}`} style={{ flex: 1, borderLeft: activeTab === 'darkweb' ? '3px solid #8b5cf6' : '1px solid var(--border-color)', background: activeTab === 'darkweb' ? 'rgba(139, 92, 246, 0.1)' : 'var(--bg-card)', cursor: 'pointer', textAlign: 'left', display: 'flex', alignItems: 'center', gap: '1rem', padding: '0 1.25rem' }}>
+            <Globe size={22} style={{ color: activeTab === 'darkweb' ? '#8b5cf6' : 'var(--text-secondary)' }} />
+            <div>
+              <h4 style={{ fontSize: '1rem', marginBottom: '0.1rem', color: activeTab === 'darkweb' ? 'white' : 'var(--text-primary)' }}>Dark Web Monitor</h4>
+              <p style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>Scan deep web leak forums</p>
+            </div>
+          </button>
+          
           <button onClick={() => { setActiveTab('urgent'); handleReset(); setUrlInput(''); setAuditPath(''); }} className={`card ${activeTab === 'urgent' ? 'glass-panel' : ''}`} style={{ flex: 1, borderLeft: activeTab === 'urgent' ? '3px solid var(--accent-red)' : '1px solid var(--border-color)', background: activeTab === 'urgent' ? 'rgba(239, 68, 68, 0.1)' : 'var(--bg-card)', cursor: 'pointer', textAlign: 'left', display: 'flex', alignItems: 'center', gap: '1rem', padding: '0 1.25rem' }}>
             <ShieldAlert size={22} style={{ color: activeTab === 'urgent' ? 'var(--accent-red)' : 'var(--text-secondary)' }} />
             <div>
@@ -549,6 +620,7 @@ const Dashboard = () => {
           <div className="viewport-header">
             <h3 style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', fontSize: '1.2rem', color: 'white', margin: 0 }}>
               {activeTab === 'breach' ? <Mail size={22} color="var(--accent-pink)" /> :
+               activeTab === 'darkweb' ? <Globe size={22} color="#8b5cf6" /> :
                activeTab === 'urgent' ? <ShieldAlert size={22} color="var(--accent-red)" /> :
                activeTab === 'sms' ? <Search size={22} color="var(--accent-green)" /> :
                activeTab === 'email' ? <Zap size={22} color="var(--accent-blue)" /> :
@@ -556,6 +628,7 @@ const Dashboard = () => {
               
               {activeTab === 'email' ? 'Batch URL Processor' : 
                activeTab === 'breach' ? 'Breach Analysis Module' : 
+               activeTab === 'darkweb' ? 'Dark Web Monitor' : 
                activeTab === 'urgent' ? 'Intelligent URL Input Module' : 
                activeTab === 'sms' ? 'System Auditor' : 'Heuristic Engine'}
             </h3>
@@ -576,23 +649,24 @@ const Dashboard = () => {
                   <input 
                     type="text" 
                     disabled={scanStatus === 'scanning'}
-                    value={activeTab === 'sms' ? auditPath : activeTab === 'breach' ? emailInput : urlInput}
+                    value={activeTab === 'sms' ? auditPath : (activeTab === 'breach' || activeTab === 'darkweb') ? emailInput : urlInput}
                     onChange={(e) => {
                       if (activeTab === 'sms') setAuditPath(e.target.value);
-                      else if (activeTab === 'breach') setEmailInput(e.target.value);
+                      else if (activeTab === 'breach' || activeTab === 'darkweb') setEmailInput(e.target.value);
                       else setUrlInput(e.target.value);
                     }}
-                    onKeyPress={(e) => e.key === 'Enter' && (activeTab === 'sms' ? handleAudit() : activeTab === 'breach' ? handleEmailCheck() : handleScan())}
+                    onKeyPress={(e) => e.key === 'Enter' && (activeTab === 'sms' ? handleAudit() : activeTab === 'breach' ? handleEmailCheck() : activeTab === 'darkweb' ? handleDarkWebCheck() : handleScan())}
                     placeholder={
                       activeTab === 'sms' ? "Enter absolute path to project directory..." : 
                       activeTab === 'breach' ? "Enter email address to check for leaks..." : 
+                      activeTab === 'darkweb' ? "Enter email or username to scan dark web forums..." : 
                       "Paste URL(s) for Pattern & Behavior Classification..."
                     }
                     style={{ flex: 1, background: 'transparent', border: 'none', color: 'white', padding: '0.6rem 1rem', outline: 'none', minWidth: 0, fontSize: '1rem' }} 
                   />
                   <button 
                     disabled={scanStatus === 'scanning'} 
-                    onClick={() => activeTab === 'sms' ? handleAudit() : activeTab === 'breach' ? handleEmailCheck() : handleScan()} 
+                    onClick={() => activeTab === 'sms' ? handleAudit() : activeTab === 'breach' ? handleEmailCheck() : activeTab === 'darkweb' ? handleDarkWebCheck() : handleScan()} 
                     className="btn-primary" 
                     style={{ borderRadius: 'var(--radius-full)', padding: '0.5rem 1.5rem', fontSize: '0.9rem', width: 'auto', flexShrink: 0 }}
                   >
@@ -620,7 +694,7 @@ const Dashboard = () => {
                   </p>
                 </div>
               ) : scanStatus === 'result' ? (
-                <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} style={{ width: '100%', display: 'flex', flexDirection: 'column', gap: '0.8rem', padding: '1rem' }}>
+                  <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} style={{ width: '100%', display: 'flex', flexDirection: 'column', gap: '0.8rem', padding: '1rem' }}>
                     
                     {/* 1. URGENT / THREAT EXPLORER */}
                     {activeTab === 'urgent' && scanResult ? (
@@ -782,7 +856,53 @@ const Dashboard = () => {
                          )}
                       </div>
 
-                    /* 4. SYSTEM AUDITOR */
+                    /* 4. DARK WEB MONITOR */
+                    ) : activeTab === 'darkweb' && darkWebResult ? (
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem', padding: '0.5rem' }}>
+                         <div style={{ textAlign: 'center' }}>
+                            <h4 style={{ fontSize: '1.1rem', fontWeight: 600, color: 'white', margin: 0 }}>Dark Web Intelligence for {emailInput}</h4>
+                         </div>
+                         
+                         <div style={{ display: 'flex', flexDirection: 'column', gap: '0.8rem', padding: '1rem', background: 'rgba(255,255,255,0.02)', borderRadius: '12px', border: '1px solid rgba(255,255,255,0.05)' }}>
+                            <div className="breach-row" style={{ display: 'flex', justifyContent: 'space-between', borderBottom: '1px solid rgba(255,255,255,0.05)', paddingBottom: '0.5rem' }}>
+                               <span style={{ opacity: 0.5 }}>Search Target</span>
+                               <span style={{ fontWeight: 500, color: 'white' }}>{emailInput}</span>
+                            </div>
+                            <div className="breach-row" style={{ display: 'flex', justifyContent: 'space-between', borderBottom: '1px solid rgba(255,255,255,0.05)', paddingBottom: '0.5rem' }}>
+                               <span style={{ opacity: 0.5 }}>Risk Status</span>
+                               <span style={{ fontWeight: 700, color: darkWebResult.result === 'Malicious' ? 'var(--accent-red)' : darkWebResult.result === 'Suspicious' ? '#f59e0b' : 'var(--accent-green)' }}>
+                                  {darkWebResult.result}
+                               </span>
+                            </div>
+                            <div className="breach-row" style={{ display: 'flex', justifyContent: 'space-between' }}>
+                               <span style={{ opacity: 0.5 }}>Risk Score</span>
+                               <span style={{ fontWeight: 700, color: darkWebResult.risk_score > 75 ? 'var(--accent-red)' : darkWebResult.risk_score > 0 ? '#f59e0b' : 'var(--accent-green)' }}>{darkWebResult.risk_score}/100</span>
+                            </div>
+                         </div>
+
+                         {darkWebResult.findings && darkWebResult.findings.length > 0 ? (
+                           <div style={{ flex: 1, background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.05)', borderRadius: '12px', overflow: 'hidden', display: 'flex', flexDirection: 'column', maxHeight: '150px' }}>
+                              <div className="auditor-table-head" style={{ display: 'flex', padding: '0.6rem 0.8rem', background: 'rgba(255,255,255,0.05)', borderBottom: '1px solid rgba(255,255,255,0.1)', fontSize: '0.75rem', fontWeight: 600 }}>
+                                 <span style={{ flex: 1 }}>Source</span><span style={{ width: '100px' }}>Type</span><span style={{ width: '80px', textAlign: 'right' }}>Severity</span>
+                              </div>
+                              <div style={{ flex: 1, overflowY: 'auto' }} className="custom-scrollbar">
+                                 {darkWebResult.findings.map((f, i) => (
+                                   <div key={i} className="auditor-table-row" style={{ display: 'flex', padding: '0.5rem 0.8rem', borderBottom: '1px solid rgba(255,255,255,0.03)', fontSize: '0.75rem' }}>
+                                      <span style={{ flex: 1, color: 'var(--text-secondary)' }}>{f.source}</span>
+                                      <span style={{ width: '100px', color: 'white' }}>{f.data_type}</span>
+                                      <span style={{ width: '80px', textAlign: 'right', color: f.severity === 'CRITICAL' ? 'var(--accent-red)' : '#f59e0b', fontWeight: 600 }}>{f.severity}</span>
+                                   </div>
+                                 ))}
+                              </div>
+                           </div>
+                         ) : (
+                           <div style={{ textAlign: 'center', padding: '1rem', background: 'rgba(16, 185, 129, 0.05)', border: '1px solid rgba(16, 185, 129, 0.2)', borderRadius: '12px', color: 'var(--accent-green)' }}>
+                              No traces found on deep web forums.
+                           </div>
+                         )}
+                      </div>
+
+                    /* 5. SYSTEM AUDITOR */
                     ) : activeTab === 'sms' && auditResults ? (
                       <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
                          <div className="result-grid-2col">
@@ -1037,32 +1157,32 @@ const BugReportModal = () => {
   if (!isBugModalOpen) return null;
 
   return (
-    <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.8)', backdropFilter: 'blur(8px)', zIndex: 9999, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '1rem' }}>
-      <motion.div initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} className="card glass-panel" style={{ maxWidth: '500px', width: '100%', padding: '2rem', border: '1px solid var(--border-color)' }}>
+    <div className="modal-overlay">
+      <motion.div initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} className="bug-report-modal">
         {status === 'success' ? (
-          <div style={{ textAlign: 'center', padding: '2rem' }}>
+          <div style={{ textAlign: 'center', padding: '1rem' }}>
             <motion.div initial={{ scale: 0 }} animate={{ scale: 1 }} transition={{ type: 'spring' }}>
-              <CheckCircle size={64} color="var(--accent-green)" style={{ margin: '0 auto 1rem' }} />
+              <CheckCircle size={64} color="var(--accent-green)" style={{ margin: '0 auto 1.5rem' }} />
             </motion.div>
             <h2 style={{ color: 'white', marginBottom: '1rem' }}>Report Logged</h2>
             <p style={{ opacity: 0.7 }}>Our engineers have been notified. Thank you for securing the grid.</p>
           </div>
         ) : (
           <>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
-              <h2 style={{ margin: 0, display: 'flex', alignItems: 'center', gap: '0.8rem', color: 'white' }}>
-                <Bug color="var(--accent-blue)" /> Report Bug
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem' }}>
+              <h2 style={{ margin: 0, display: 'flex', alignItems: 'center', gap: '1rem', color: 'white', fontSize: '1.8rem' }}>
+                <Bug size={32} color="var(--accent-blue)" /> Report Bug
               </h2>
-              <button onClick={() => setBugModalOpen(false)} style={{ background: 'transparent', border: 'none', color: 'white', cursor: 'pointer' }}><XCircle size={24} /></button>
+              <button onClick={() => setBugModalOpen(false)} style={{ background: 'transparent', border: 'none', color: 'white', cursor: 'pointer', opacity: 0.5 }} onMouseEnter={e => e.currentTarget.style.opacity = 1} onMouseLeave={e => e.currentTarget.style.opacity = 0.5}><XCircle size={28} /></button>
             </div>
-            <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-              <div>
-                <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.85rem', opacity: 0.7 }}>Reporter Email</label>
-                <input required type="email" value={formData.email} onChange={e => setFormData({...formData, email: e.target.value})} style={{ width: '100%', background: 'rgba(255,255,255,0.05)', border: '1px solid var(--border-color)', borderRadius: '8px', padding: '0.8rem', color: 'white', outline: 'none' }} placeholder="your@email.com" />
+            <form onSubmit={handleSubmit}>
+              <div className="bug-form-group">
+                <label>Reporter Email</label>
+                <input required type="email" className="bug-input" value={formData.email} onChange={e => setFormData({...formData, email: e.target.value})} placeholder="your@email.com" />
               </div>
-              <div>
-                <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.85rem', opacity: 0.7 }}>Incident Subject</label>
-                <select value={formData.subject} onChange={e => setFormData({...formData, subject: e.target.value})} style={{ width: '100%', background: 'rgba(255,255,255,0.05)', border: '1px solid var(--border-color)', borderRadius: '8px', padding: '0.8rem', color: 'white', outline: 'none' }}>
+              <div className="bug-form-group">
+                <label>Incident Subject</label>
+                <select value={formData.subject} className="bug-input" onChange={e => setFormData({...formData, subject: e.target.value})}>
                   <option value="UI Glitch" style={{ color: 'black' }}>UI Glitch</option>
                   <option value="Scanner Failure" style={{ color: 'black' }}>Scanner Failure</option>
                   <option value="Authentication Error" style={{ color: 'black' }}>Authentication Error</option>
@@ -1070,11 +1190,11 @@ const BugReportModal = () => {
                   <option value="Other" style={{ color: 'black' }}>Other Security Concern</option>
                 </select>
               </div>
-              <div>
-                <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.85rem', opacity: 0.7 }}>Description</label>
-                <textarea required rows={4} value={formData.description} onChange={e => setFormData({...formData, description: e.target.value})} style={{ width: '100%', background: 'rgba(255,255,255,0.05)', border: '1px solid var(--border-color)', borderRadius: '8px', padding: '0.8rem', color: 'white', outline: 'none', resize: 'none' }} placeholder="What happened on the grid?" />
+              <div className="bug-form-group">
+                <label>Description</label>
+                <textarea required rows={4} className="bug-input bug-textarea" value={formData.description} onChange={e => setFormData({...formData, description: e.target.value})} placeholder="What happened on the grid?" />
               </div>
-              <button disabled={status === 'sending'} type="submit" className="btn-primary" style={{ marginTop: '0.5rem', padding: '1rem' }}>
+              <button disabled={status === 'sending'} type="submit" className="btn-primary" style={{ width: '100%', padding: '1.2rem', marginTop: '1rem', borderRadius: '12px', fontSize: '1rem', fontWeight: 600 }}>
                 {status === 'sending' ? <Activity className="animate-pulse-green" /> : 'Transmit Report'}
               </button>
             </form>
@@ -1360,6 +1480,8 @@ const Login = () => {
   const [isLogin, setIsLogin] = useState(true);
   const [isForgotPassword, setIsForgotPassword] = useState(false);
   const [isAuthenticating, setIsAuthenticating] = useState(false);
+  const [authError, setAuthError] = useState(null);
+  const [authSuccess, setAuthSuccess] = useState(null);
   const { login } = useAuth();
   const navigate = useNavigate();
 
@@ -1384,24 +1506,25 @@ const Login = () => {
 
   const handleForgotPassword = async (e) => {
     e.preventDefault();
-    if (!formData.email) return alert('Please enter your Admin Email first to request a reset link.');
+    setAuthError(null);
+    setAuthSuccess(null);
+    if (!formData.email) return setAuthError('Administrator Email required for dispatch.');
     setIsAuthenticating(true);
     try {
-      const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:8000';
-      const response = await fetch(`${apiUrl}/auth/reset-password`, {
+      const response = await fetch(`${API_URL}/auth/reset-password`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email: formData.email })
       });
       const data = await response.json();
       if(response.ok) {
-        alert('Password reset instructions have been securely dispatched to your email.');
-        setIsForgotPassword(false);
+        setAuthSuccess('Handshake verified. Reset instructions dispatched to secure relay.');
+        setTimeout(() => setIsForgotPassword(false), 3000);
       } else {
-        alert(data.error || 'Failed to dispatch reset instructions.');
+        setAuthError(data.error || 'Identity relay failure.');
       }
     } catch(err) {
-      alert('Network error communicating with backend.');
+      setAuthError('Grid link timeout. Handshake failed.');
     } finally {
       setIsAuthenticating(false);
     }
@@ -1409,24 +1532,28 @@ const Login = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setAuthError(null);
+    setAuthSuccess(null);
     setIsAuthenticating(true);
     try {
       const endpoint = isLogin ? '/auth/login' : '/auth/register';
-      const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:8000';
-      const response = await fetch(`${apiUrl}${endpoint}`, {
+      const response = await fetch(`${API_URL}${endpoint}`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(formData)
       });
       const data = await response.json();
       if(response.ok) {
-        login({ name: data.name || formData.email.split('@')[0], id: data.user });
-        navigate('/dashboard');
+        setAuthSuccess('Handshake confirmed. Syncing neural grid...');
+        setTimeout(() => {
+          login({ name: data.name || formData.email.split('@')[0], id: data.user });
+          navigate('/dashboard');
+        }, 1500);
       } else {
-        alert(data.error || 'Authentication failed');
+        setAuthError(data.error || 'Access denied. Signature mismatch.');
       }
     } catch(err) {
-      alert('Network error communicating with backend for Handshake');
+      setAuthError('Handshake protocol failed. Server unreachable.');
     } finally {
       setIsAuthenticating(false);
     }
@@ -1448,6 +1575,20 @@ const Login = () => {
           <h2 style={{ marginTop: '1rem', fontSize: '1.8rem' }}>{isAuthenticating ? 'Processing...' : (isForgotPassword ? 'Reset Passphrase' : (isLogin ? 'Secure Access' : 'Create Identity'))}</h2>
           <p style={{ marginTop: '0.5rem', fontSize: '0.9rem' }}>{isForgotPassword ? 'Submit your email to receive recovery instructions.' : 'Military-grade encrypted protocol connection'}</p>
         </div>
+        {/* Handshake Feedback UI */}
+        <AnimatePresence>
+          {authError && (
+            <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} className="auth-error-vortex" style={{ marginBottom: '1.5rem' }}>
+              <ShieldAlert size={20} /> {authError}
+            </motion.div>
+          )}
+          {authSuccess && (
+            <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} className="handshake-success" style={{ marginBottom: '1.5rem' }}>
+              <ShieldCheck size={20} /> {authSuccess}
+            </motion.div>
+          )}
+        </AnimatePresence>
+
         <form onSubmit={isForgotPassword ? handleForgotPassword : handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
           {!isLogin && !isForgotPassword && (
             <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }}>

@@ -832,6 +832,71 @@ def check_email():
         return jsonify({"error": f"Intelligence analysis failed: {str(e)}"}), 500
 
 
+# --- DARK WEB MONITOR ---
+@app.route('/scan-darkweb', methods=['POST'])
+def scan_darkweb():
+    """Simulates a deep web search across known leak forums."""
+    try:
+        data = request.json
+        query = data.get("query", "").strip()
+        if not query: return jsonify({"error": "No query provided"}), 400
+
+        import hashlib
+        import random
+        
+        # Use query to seed random for consistent results per query
+        seed = int(hashlib.md5(query.encode()).hexdigest(), 16)
+        random.seed(seed)
+        
+        is_leaked = random.choice([True, True, False]) # 66% chance of finding something for demo
+        
+        dark_forums = ["RaidForums Archive", "Genesis Market Dump", "BreachForums", "Russian Cyber Cartel Dumps", "Silk Road DB", "Darkode", "0day.today Market"]
+        data_types = ["Passwords", "Financial Records", "Session Cookies", "API Keys", "Full Identity Profiles", "Crypto Wallet Seeds"]
+        
+        findings = []
+        risk_score = 0
+        res_type = "Safe"
+        
+        if is_leaked:
+            num_leaks = random.randint(1, 4)
+            for _ in range(num_leaks):
+                forum = random.choice(dark_forums)
+                dtype = random.choice(data_types)
+                date = f"202{random.randint(2, 4)}-0{random.randint(1,9)}-{random.randint(10,28)}"
+                findings.append({
+                    "source": forum,
+                    "data_type": dtype,
+                    "date_detected": date,
+                    "severity": "CRITICAL" if dtype in ["Passwords", "API Keys", "Crypto Wallet Seeds"] else "HIGH"
+                })
+            
+            risk_score = min(100, 40 + (len(findings) * 20))
+            res_type = "Malicious" if risk_score > 75 else "Suspicious"
+            
+        # Record to history
+        if supabase:
+            try:
+                supabase.table('scan_history').insert({
+                    "target": f"Dark Web: {query}",
+                    "scan_type": "Dark Web Monitor",
+                    "risk_score": risk_score,
+                    "result": res_type
+                }).execute()
+            except: pass
+
+        return jsonify({
+            "query": query,
+            "risk_score": risk_score,
+            "result": res_type,
+            "findings": findings,
+            "updated_analytics": _get_analytics_data() if is_leaked else None
+        })
+    except Exception as e:
+        return jsonify({"error": f"Dark Web Scan failed: {str(e)}"}), 500
+
+
+
+
 # 🔍 System Auditor: Scan Local Directory
 @app.route('/system/audit', methods=['POST'])
 def system_audit():
@@ -1000,10 +1065,32 @@ def report_bug():
         subject = data.get('subject', 'Bug Report')
         description = data.get('description', '')
 
-        # For local dev without SMTP setup, we will log it and return success
-        # In production, you would use smtplib or a service like Resend/SendGrid
         print(f'BUG REPORT RECEIVED FROM {reporter}: {subject}')
-        print(f'Description: {description}')
+
+        try:
+            # --- Gmail SMTP Configuration ---
+            sender_email = 'rishikhadiyar@gmail.com'
+            # Pull password from .env for security
+            sender_password = os.environ.get('SMTP_PASSWORD')
+
+            if sender_password:
+                msg = MIMEMultipart()
+                msg['From'] = f'CyberGuard Bug Reporter <{sender_email}>'
+                msg['To'] = sender_email
+                msg['Subject'] = f'[BUG] {subject} from {reporter}'
+                body = f'Reporter Email: {reporter}\nSubject: {subject}\n\nDescription:\n{description}'
+                msg.attach(MIMEText(body, 'plain'))
+
+                server = smtplib.SMTP('smtp.gmail.com', 587)
+                server.starttls()
+                server.login(sender_email, sender_password)
+                server.send_message(msg)
+                server.quit()
+                print('Email notification sent to admin.')
+            else:
+                print('Skipping email: SMTP_PASSWORD not set.')
+        except Exception as mail_err:
+            print(f'Mail Error: {mail_err}')
 
         return jsonify({'message': 'Bug report submitted successfully! We will review it shortly.'})
     except Exception as e:

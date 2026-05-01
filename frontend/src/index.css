@@ -900,3 +900,39 @@ html, body { overflow-x: hidden; width: 100%; max-width: 100vw; }
   resize: vertical;
 }
 
+
+/* Handshake & Authentication UI */
+.auth-error-vortex {
+  background: rgba(239, 68, 68, 0.1);
+  border-left: 3px solid var(--accent-red);
+  padding: 0.8rem 1rem;
+  border-radius: 8px;
+  margin-bottom: 1.5rem;
+  display: flex;
+  align-items: center;
+  gap: 0.8rem;
+  color: #fca5a5;
+  font-size: 0.9rem;
+  animation: shake 0.4s cubic-bezier(.36,.07,.19,.97) both;
+}
+
+@keyframes shake {
+  10%, 90% { transform: translate3d(-1px, 0, 0); }
+  20%, 80% { transform: translate3d(2px, 0, 0); }
+  30%, 50%, 70% { transform: translate3d(-4px, 0, 0); }
+  40%, 60% { transform: translate3d(4px, 0, 0); }
+}
+
+.handshake-success {
+  background: rgba(16, 185, 129, 0.1);
+  border-left: 3px solid var(--accent-green);
+  padding: 0.8rem 1rem;
+  border-radius: 8px;
+  margin-bottom: 1.5rem;
+  display: flex;
+  align-items: center;
+  gap: 0.8rem;
+  color: #6ee7b7;
+  font-size: 0.9rem;
+}
+
