@@ -1,6 +1,6 @@
 import React, { useState, useEffect, createContext, useContext } from 'react'
 import { BrowserRouter as Router, Routes, Route, Link, useLocation, useNavigate } from 'react-router-dom'
-import { ShieldAlert, Activity, LayoutDashboard, KeyRound, ArrowRight, Mail, MessageSquare, AlertTriangle, Globe, Server, CheckCircle, XCircle, Search, LogOut, ShieldCheck, Zap, BarChart3, Fingerprint, Loader, CloudOff } from 'lucide-react'
+import { ShieldAlert, Activity, LayoutDashboard, KeyRound, ArrowRight, Mail, MessageSquare, AlertTriangle, Globe, Server, CheckCircle, XCircle, Search, LogOut, ShieldCheck, Zap, BarChart3, Fingerprint, Loader, CloudOff, Home as HomeIcon } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { PieChart, Pie, Cell, Tooltip as RechartsTooltip, ResponsiveContainer, AreaChart, Area, XAxis, YAxis, CartesianGrid, Legend } from 'recharts'
 import { ComposableMap, Geographies, Geography } from "react-simple-maps"
@@ -22,7 +22,7 @@ const SkeletonLoader = ({ count = 1, type = 'card' }) => {
   }
   if (type === 'row') {
     return (
-      <div style={{ borderBottom: '1px solid rgba(255,255,255,0.05)', padding: '0.8rem 0.5rem', display: 'grid', gridTemplateColumns: '1fr 2fr 1fr 1fr 1fr', gap: '1rem' }}>
+      <div style={{ borderBottom: '1px solid rgba(255,255,255,0.05)', padding: '0.8rem 0.5rem', display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(60px, 1fr))', gap: '1rem' }}>
         <div style={{ height: '20px', background: 'rgba(255,255,255,0.1)', borderRadius: '4px', animation: 'pulse 2s infinite' }}></div>
         <div style={{ height: '20px', background: 'rgba(255,255,255,0.1)', borderRadius: '4px', animation: 'pulse 2s infinite' }}></div>
         <div style={{ height: '20px', background: 'rgba(255,255,255,0.1)', borderRadius: '4px', animation: 'pulse 2s infinite' }}></div>
@@ -395,16 +395,16 @@ const Dashboard = () => {
   };
 
   return (
-    <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="dash-container" style={{ maxWidth: '1200px', margin: '0 auto', pointerEvents: 'auto' }}>
+    <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="dash-container" style={{ maxWidth: '1200px', width: '100%', margin: '0 auto', padding: '0 1rem', boxSizing: 'border-box', overflowX: 'hidden', pointerEvents: 'auto' }}>
       
       {/* Dashboard Header */}
       <div className="dash-header">
-        <div style={{ display: 'flex', alignItems: 'center', gap: '1.5rem' }}>
-          <div style={{ width: '68px', height: '68px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+        <div className="dash-title-row">
+          <div style={{ width: '68px', height: '68px', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
             <img src={logo} alt="CyberGuard AI Logo" style={{ width: '100%', height: '100%', objectFit: 'contain', filter: 'drop-shadow(0 0 8px rgba(59, 130, 246, 0.5))' }} />
           </div>
           <div>
-            <h2 style={{ fontSize: '2rem', textShadow: '0 0 10px rgba(59, 130, 246, 0.3)', margin: 0 }}>Intelligence Analysis Dashboard</h2>
+            <h2 style={{ fontSize: 'clamp(1.3rem, 4vw, 2rem)', textShadow: '0 0 10px rgba(59, 130, 246, 0.3)', margin: 0 }}>Intelligence Analysis Dashboard</h2>
             <p style={{ color: 'var(--text-secondary)', margin: '0.2rem 0 0 0' }}>Forensic Command Center.</p>
           </div>
         </div>
@@ -430,7 +430,7 @@ const Dashboard = () => {
       <div className="grid-cols-tools" style={{ marginBottom: '3rem' }}>
         
         {/* Sidebar */}
-        <div className="dash-sidebar" style={{ display: 'flex', flexDirection: 'column', gap: '0.6rem', height: '460px' }}>
+        <div className="dash-sidebar">
           <button onClick={() => { setActiveTab('email'); handleReset(); setUrlInput(''); setAuditPath(''); }} className={`card ${activeTab === 'email' ? 'glass-panel' : ''}`} style={{ flex: 1, borderLeft: activeTab === 'email' ? '3px solid var(--accent-blue)' : '1px solid var(--border-color)', background: activeTab === 'email' ? 'rgba(59, 130, 246, 0.1)' : 'var(--bg-card)', cursor: 'pointer', textAlign: 'left', display: 'flex', alignItems: 'center', gap: '1rem', padding: '0 1.25rem' }}>
             <Zap size={22} style={{ color: activeTab === 'email' ? 'var(--accent-blue)' : 'var(--text-secondary)' }} />
             <div>
@@ -474,11 +474,6 @@ const Dashboard = () => {
         
         {/* Main Intelligence Viewport */}
         <div className="card glass-panel dash-viewport" style={{ 
-          height: '460px', 
-          display: 'flex', 
-          flexDirection: 'column', 
-          position: 'relative', 
-          overflow: 'hidden',
           background: 'rgba(10, 14, 23, 0.3)',
           backdropFilter: 'blur(16px)',
           border: '1px solid rgba(59, 130, 246, 0.2)',
@@ -486,7 +481,7 @@ const Dashboard = () => {
         }}>
           {scanStatus === 'scanning' && <div className="scanner-overlay" style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, pointerEvents: 'none', opacity: 0.5, zIndex: 0 }} />}
           
-          <div style={{ borderBottom: '1px solid var(--border-color)', padding: '1rem 1.5rem', position: 'relative', zIndex: 1, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <div className="viewport-header">
             <h3 style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', fontSize: '1.2rem', color: 'white', margin: 0 }}>
               {activeTab === 'breach' ? <Mail size={22} color="var(--accent-pink)" /> :
                activeTab === 'urgent' ? <ShieldAlert size={22} color="var(--accent-red)" /> :
@@ -511,7 +506,8 @@ const Dashboard = () => {
             {/* Input Phase */}
             {scanStatus !== 'result' && (
               <div style={{ padding: '1.5rem', borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
-                <div style={{ display: 'flex', gap: '1rem', background: 'rgba(0,0,0,0.3)', borderRadius: '12px', padding: '0.5rem', border: '1px solid var(--border-color)' }}>
+                <div style={{ display: 'flex', background: 'rgba(10, 14, 23, 0.6)', borderRadius: 'var(--radius-full)', padding: '0.3rem', border: '1px solid rgba(255,255,255,0.1)', boxShadow: '0 4px 20px rgba(0,0,0,0.5)', width: '100%', maxWidth: '800px' }}>
+                  <Search size={20} style={{ margin: '0 0.5rem 0 1rem', opacity: 0.5, alignSelf: 'center', flexShrink: 0 }} />
                   <input 
                     type="text" 
                     disabled={scanStatus === 'scanning'}
@@ -527,15 +523,15 @@ const Dashboard = () => {
                       activeTab === 'breach' ? "Enter email address to check for leaks..." : 
                       "Paste URL(s) for Pattern & Behavior Classification..."
                     }
-                    style={{ flex: 1, background: 'transparent', border: 'none', color: 'white', padding: '0.5rem 1rem', outline: 'none' }} 
+                    style={{ flex: 1, background: 'transparent', border: 'none', color: 'white', padding: '0.6rem 1rem', outline: 'none', minWidth: 0, fontSize: '1rem' }} 
                   />
                   <button 
                     disabled={scanStatus === 'scanning'} 
                     onClick={() => activeTab === 'sms' ? handleAudit() : activeTab === 'breach' ? handleEmailCheck() : handleScan()} 
                     className="btn-primary" 
-                    style={{ padding: '0 2rem', borderRadius: '8px' }}
+                    style={{ borderRadius: 'var(--radius-full)', padding: '0.5rem 1.5rem', fontSize: '0.9rem', width: 'auto', flexShrink: 0 }}
                   >
-                    {scanStatus === 'scanning' ? 'Running...' : 'Execute'}
+                    {scanStatus === 'scanning' ? <Activity size={16} className="animate-pulse-green" /> : 'Execute'}
                   </button>
                 </div>
                 <div style={{ marginTop: '0.8rem', display: 'flex', alignItems: 'center', gap: '0.5rem', opacity: 0.5, fontSize: '0.75rem' }}>
@@ -574,7 +570,7 @@ const Dashboard = () => {
                            </div>
                         </div>
 
-                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+                        <div className="result-grid-2col">
                            <div style={{ background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.05)', borderRadius: '12px', padding: '1rem', textAlign: 'center' }}>
                               <span style={{ fontSize: '0.7rem', opacity: 0.5, fontWeight: 600, display: 'block', marginBottom: '0.6rem' }}>IDENTIFIED RISK LEVEL</span>
                               <h3 style={{ fontSize: '2.4rem', fontWeight: 800, color: scanResult.risk_color || 'white', margin: '0.2rem 0' }}>
@@ -606,7 +602,7 @@ const Dashboard = () => {
                     /* 2. HEURISTIC ENGINE */
                     ) : activeTab === 'heuristic' && scanResult ? (
                      <div style={{ display: 'flex', flexDirection: 'column', gap: '0.6rem' }}>
-                        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '0.6rem' }}>
+                        <div className="heuristic-stats-grid">
                            <div className="stat-box" style={{ background: 'rgba(59, 130, 246, 0.05)', border: '1px solid rgba(59, 130, 246, 0.2)', padding: '0.5rem', borderRadius: '10px', textAlign: 'center' }}>
                               <span style={{ fontSize: '0.55rem', opacity: 0.5, display: 'block', marginBottom: '0.2rem' }}>ENTROPY</span>
                               <div style={{ height: '3px', width: '100%', background: 'rgba(255,255,255,0.05)', borderRadius: '10px', margin: '0.3rem 0', overflow: 'hidden' }}>
@@ -658,21 +654,21 @@ const Dashboard = () => {
                          </div>
                          
                          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.8rem', padding: '1rem', background: 'rgba(255,255,255,0.02)', borderRadius: '12px', border: '1px solid rgba(255,255,255,0.05)' }}>
-                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '0.9rem' }}>
+                            <div className="breach-row">
                                <span style={{ opacity: 0.5 }}>Email Address</span>
                                <span style={{ fontWeight: 500, color: 'white' }}>{emailInput}</span>
                             </div>
-                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '0.9rem' }}>
+                            <div className="breach-row">
                                <span style={{ opacity: 0.5 }}>Leaked Status</span>
                                <span style={{ fontWeight: 700, color: breachResult.is_breached ? 'var(--accent-red)' : 'var(--accent-green)' }}>
                                   {breachResult.is_breached ? 'Confirmed Exposure' : 'Not Exposed Online'}
                                </span>
                             </div>
-                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '0.9rem' }}>
+                            <div className="breach-row">
                                <span style={{ opacity: 0.5 }}>Breaches Found</span>
                                <span style={{ fontWeight: 700, color: breachResult.num_leaks > 0 ? 'var(--accent-red)' : 'var(--accent-green)' }}>{breachResult.num_leaks}</span>
                             </div>
-                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '0.9rem' }}>
+                            <div className="breach-row">
                                <span style={{ opacity: 0.5 }}>Risk Score</span>
                                <span style={{ fontWeight: 700, color: breachResult.risk_score > 60 ? 'var(--accent-red)' : breachResult.risk_score > 0 ? '#f59e0b' : 'var(--accent-green)' }}>{breachResult.risk_score}/100</span>
                             </div>
@@ -724,7 +720,7 @@ const Dashboard = () => {
                     /* 4. SYSTEM AUDITOR */
                     ) : activeTab === 'sms' && auditResults ? (
                       <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-                         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+                         <div className="result-grid-2col">
                             <div style={{ padding: '0.8rem', background: 'rgba(59, 130, 246, 0.05)', border: '1px solid rgba(59, 130, 246, 0.2)', borderRadius: '12px', textAlign: 'center' }}>
                                <h3 style={{ fontSize: '1.4rem', fontWeight: 800, color: 'var(--accent-blue)', margin: 0 }}>{auditResults.total_scanned || 0}</h3>
                                <p style={{ margin: 0, fontSize: '0.7rem', opacity: 0.6 }}>Files Scanned</p>
@@ -736,12 +732,12 @@ const Dashboard = () => {
                          </div>
 
                          <div style={{ flex: 1, background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.05)', borderRadius: '12px', overflow: 'hidden', display: 'flex', flexDirection: 'column', maxHeight: '180px' }}>
-                            <div style={{ display: 'grid', gridTemplateColumns: '1.5fr 1fr 2fr', padding: '0.6rem 0.8rem', background: 'rgba(255,255,255,0.05)', borderBottom: '1px solid rgba(255,255,255,0.1)', fontSize: '0.75rem', fontWeight: 600 }}>
+                            <div className="auditor-table-head" style={{ padding: '0.6rem 0.8rem', background: 'rgba(255,255,255,0.05)', borderBottom: '1px solid rgba(255,255,255,0.1)', fontSize: '0.75rem', fontWeight: 600 }}>
                                <span>Asset</span><span>Risk</span><span>Indicator</span>
                             </div>
                             <div style={{ flex: 1, overflowY: 'auto' }} className="custom-scrollbar">
                                {auditResults.findings && auditResults.findings.map((f, i) => (
-                                 <div key={i} style={{ display: 'grid', gridTemplateColumns: '1.5fr 1fr 2fr', padding: '0.5rem 0.8rem', borderBottom: '1px solid rgba(255,255,255,0.03)', fontSize: '0.75rem' }}>
+                                 <div key={i} className="auditor-table-row" style={{ padding: '0.5rem 0.8rem', borderBottom: '1px solid rgba(255,255,255,0.03)', fontSize: '0.75rem' }}>
                                     <span style={{ color: 'var(--accent-blue)', opacity: 0.8, overflow: 'hidden', textOverflow: 'ellipsis' }}>{(f.file || '').split(/[\\\/]/).pop()}</span>
                                     <span style={{ color: f.result === 'Malicious' ? 'var(--accent-red)' : '#f59e0b', fontWeight: 600 }}>{(f.result || '').toUpperCase()}</span>
                                     <span style={{ opacity: 0.5, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{f.url}</span>
@@ -754,7 +750,7 @@ const Dashboard = () => {
                     /* 5. BATCH URL PROCESSOR (DEFAULT) */
                     ) : (
                       <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-                          <div style={{ display: 'flex', gap: '1rem' }}>
+                          <div className="batch-stats-row">
                              <div className="stat-box" style={{ flex: 1, background: 'rgba(59, 130, 246, 0.05)', border: '1px solid var(--accent-blue)', padding: '0.8rem', borderRadius: '10px', textAlign: 'center' }}>
                                 <h3 style={{ fontSize: '1.4rem', margin: 0 }}>{scanResult?.summary?.total || scanResult?.results?.length || 0}</h3>
                                 <p style={{ fontSize: '0.65rem', opacity: 0.6, margin: 0 }}>TOTAL ANALYZED</p>
@@ -792,15 +788,15 @@ const Dashboard = () => {
 
       {/* ── Threat Stats Graph ── */}
       <div className="card glass-panel" style={{ maxWidth: '1200px', margin: '2rem auto', padding: '1.5rem' }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
-          <h3 style={{ fontSize: '1.1rem', display: 'flex', alignItems: 'center', gap: '0.6rem', margin: 0 }}>
-            <Activity size={18} color="var(--accent-blue)" />
-            Live Threat Intelligence Graph
-            <span style={{ fontSize: '0.65rem', color: 'var(--accent-green)', background: 'rgba(16,185,129,0.1)', border: '1px solid rgba(16,185,129,0.2)', borderRadius: '20px', padding: '0.15rem 0.6rem', letterSpacing: '1px', fontWeight: 700 }}>SYNCED</span>
+        <div className="stats-header-row" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
+          <h3 style={{ fontSize: '1.05rem', margin: 0, lineHeight: 1.5 }}>
+            <Activity size={18} color="var(--accent-blue)" style={{ verticalAlign: 'middle', marginRight: '0.5rem', marginTop: '-2px' }} />
+            <span style={{ verticalAlign: 'middle' }}>Live Threat Intelligence Graph</span>
+            <span style={{ verticalAlign: 'middle', display: 'inline-block', marginLeft: '0.6rem', fontSize: '0.65rem', color: 'var(--accent-green)', background: 'rgba(16,185,129,0.1)', border: '1px solid rgba(16,185,129,0.2)', borderRadius: '20px', padding: '0.15rem 0.6rem', letterSpacing: '1px', fontWeight: 700 }}>SYNCED</span>
           </h3>
-          <div style={{ display: 'flex', gap: '1.2rem' }}>
+          <div style={{ display: 'flex', gap: '0.8rem', flexWrap: 'wrap', marginTop: '0.5rem' }}>
             {[['Safe', '#10b981'], ['Suspicious', '#f59e0b'], ['Malicious', '#ef4444']].map(([label, col]) => (
-              <div key={label} style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', fontSize: '0.72rem' }}>
+              <div key={label} style={{ display: 'flex', alignItems: 'center', gap: '0.3rem', fontSize: '0.72rem' }}>
                 <div style={{ width: '8px', height: '8px', borderRadius: '2px', background: col }} />
                 <span style={{ color: 'var(--text-secondary)' }}>{label}</span>
               </div>
@@ -846,7 +842,7 @@ const Dashboard = () => {
       </div>
 
       <div className="grid-cols-stats" style={{ maxWidth: '1200px', margin: '0 auto 2rem auto' }}>
-        <div className="card glass-panel" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', height: '360px' }}>
+        <div className="card glass-panel stats-pie-panel">
           <h3 style={{ fontSize: '1.2rem', marginBottom: '1rem', alignSelf: 'flex-start', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
             {scanResult ? (scanResult.isBatch ? <BarChart3 size={18} color="var(--accent-blue)" /> : <Activity size={18} color="var(--accent-blue)" />) : <Search size={18} color="var(--accent-blue)" />}
             {scanResult ? (scanResult.isBatch ? `Batch Profile (${scanResult.summary?.total || 1} URLs)` : 'Forensic Risk Gauge') : 'Global Intelligence Feed'}
@@ -856,7 +852,7 @@ const Dashboard = () => {
                  <SkeletonLoader type="chart" />
              </div>
           ) : (
-            <div style={{ width: '100%', height: '220px', flex: 1 }}>
+            <div style={{ width: '100%', height: '220px', flex: 1, minWidth: 0, minHeight: '180px' }}>
               <ResponsiveContainer>
                 <PieChart>
                   <Pie data={pieData} cx="50%" cy="50%" innerRadius={60} outerRadius={80} paddingAngle={5} dataKey="value" stroke="none">
@@ -869,7 +865,7 @@ const Dashboard = () => {
           )}
         </div>
 
-        <div className="card glass-panel" style={{ display: 'flex', flexDirection: 'column', height: '360px' }}>
+        <div className="card glass-panel stats-log-panel">
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
             <h3 style={{ fontSize: '1.2rem', margin: 0 }}>Persistent Forensic Logs</h3>
             {historyData.length > 0 && (
@@ -896,7 +892,7 @@ const Dashboard = () => {
             ) : historyData.length === 0 ? (
                <div style={{ padding: '2rem', textAlign: 'center', opacity: 0.5 }}>No logs recorded yet.</div>
             ) : (
-               <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', fontSize: '0.85rem' }}>
+               <div className="forensic-table-wrap"><table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', fontSize: '0.85rem' }}>
                  <thead style={{ position: 'sticky', top: 0, zIndex: 20, backgroundColor: 'var(--bg-card)' }}>
                    <tr style={{ borderBottom: '1px solid rgba(255,255,255,0.1)', color: 'var(--text-secondary)' }}>
                      <th style={{ padding: '0.8rem 0.5rem', backgroundColor: 'var(--bg-card)' }}>ID</th>
@@ -917,7 +913,7 @@ const Dashboard = () => {
                      </tr>
                    ))}
                  </tbody>
-               </table>
+               </table></div>
             )}
           </div>
         </div>
@@ -939,12 +935,12 @@ const Footer = () => (
     pointerEvents: 'auto'
   }}>
     <div style={{ maxWidth: '1100px', margin: '0 auto', display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
-      <div style={{ display: 'flex', justifyContent: 'center', gap: '2rem' }}>
+      <div className="footer-links">
         <Link to="/privacy" style={{ color: 'var(--text-secondary)', textDecoration: 'none', transition: 'color 0.2s' }}>Privacy Protocol</Link>
         <Link to="/terms" style={{ color: 'var(--text-secondary)', textDecoration: 'none', transition: 'color 0.2s' }}>Terms of Operation</Link>
         <a href="mailto:rishikhadiyar@gmail.com?subject=CyberGuard AI Bug Report" style={{ color: 'var(--text-secondary)', textDecoration: 'none', transition: 'color 0.2s' }}>🐛 Report Bug</a>
       </div>
-      <div style={{ color: 'var(--text-secondary)', fontSize: '0.9rem', display: 'flex', justifyContent: 'center', gap: '1.5rem', flexWrap: 'wrap' }}>
+      <div className="footer-contact">
         <span><strong>Contact:</strong></span>
         <a href="mailto:rishikhadiyar@gmail.com" style={{ color: 'var(--accent-blue)', textDecoration: 'none' }}>rishikhadiyar@gmail.com</a>
         <span style={{ opacity: 0.5 }}>|</span>
@@ -1407,7 +1403,7 @@ const Navbar = () => {
 
       {/* Desktop nav links */}
       <div className="navbar-links">
-        <Link to="/" style={{ color: location.pathname === '/' ? 'white' : 'var(--text-secondary)', textDecoration: 'none', fontWeight: 500, transition: 'var(--transition)' }}>Home</Link>
+        <Link to="/" style={{ display: 'flex', alignItems: 'center', color: location.pathname === '/' ? 'white' : 'var(--text-secondary)', textDecoration: 'none', fontWeight: 500, transition: 'var(--transition)' }}><HomeIcon size={18} /> Home</Link>
         <Link to="/dashboard" style={{ color: location.pathname === '/dashboard' ? 'white' : 'var(--text-secondary)', textDecoration: 'none', fontWeight: 500, transition: 'var(--transition)', display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
           <LayoutDashboard size={18} /> Dashboard
         </Link>
@@ -1447,7 +1443,7 @@ const Navbar = () => {
 
     {/* Mobile slide-down menu */}
     <div className={`mobile-nav-menu${mobileOpen ? ' open' : ''}`}>
-      <Link to="/" onClick={() => setMobileOpen(false)} style={{ color: location.pathname === '/' ? 'white' : 'var(--text-secondary)', textDecoration: 'none', fontWeight: 500, fontSize: '1.1rem' }}>Home</Link>
+      <Link to="/" onClick={() => setMobileOpen(false)} style={{ color: location.pathname === '/' ? 'white' : 'var(--text-secondary)', textDecoration: 'none', fontWeight: 500, fontSize: '1.1rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}><HomeIcon size={18} /> Home</Link>
       <Link to="/dashboard" onClick={() => setMobileOpen(false)} style={{ color: location.pathname === '/dashboard' ? 'white' : 'var(--text-secondary)', textDecoration: 'none', fontWeight: 500, fontSize: '1.1rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
         <LayoutDashboard size={18} /> Dashboard
       </Link>
@@ -1491,7 +1487,7 @@ const CookieConsent = () => {
   const [show, setShow] = useState(() => !localStorage.getItem('cookie_consent'));
   if(!show) return null;
   return (
-    <div style={{ position: 'fixed', bottom: 0, left: 0, right: 0, padding: '1rem 2rem', background: 'rgba(15, 23, 42, 0.95)', borderTop: '1px solid var(--accent-blue)', display: 'flex', justifyContent: 'space-between', alignItems: 'center', zIndex: 1000, pointerEvents: 'auto' }}>
+    <div className="cookie-bar">
       <p style={{ color: 'white', margin: 0, fontSize: '0.9rem' }}>We use cookies strictly for operator authentication and platform security. By continuing, you consent to our <Link to="/privacy" style={{color: 'var(--accent-blue)'}}>Privacy Protocol</Link>.</p>
       <button className="btn-primary" onClick={() => { localStorage.setItem('cookie_consent', 'true'); setShow(false); }}>Accept & Proceed</button>
     </div>
