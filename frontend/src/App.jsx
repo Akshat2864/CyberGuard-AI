@@ -1063,11 +1063,11 @@ const BugReportModal = () => {
               <div>
                 <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.85rem', opacity: 0.7 }}>Incident Subject</label>
                 <select value={formData.subject} onChange={e => setFormData({...formData, subject: e.target.value})} style={{ width: '100%', background: 'rgba(255,255,255,0.05)', border: '1px solid var(--border-color)', borderRadius: '8px', padding: '0.8rem', color: 'white', outline: 'none' }}>
-                  <option value="UI Glitch">UI Glitch</option>
-                  <option value="Scanner Failure">Scanner Failure</option>
-                  <option value="Authentication Error">Authentication Error</option>
-                  <option value="Performance Lag">Performance Lag</option>
-                  <option value="Other">Other Security Concern</option>
+                  <option value="UI Glitch" style={{ color: 'black' }}>UI Glitch</option>
+                  <option value="Scanner Failure" style={{ color: 'black' }}>Scanner Failure</option>
+                  <option value="Authentication Error" style={{ color: 'black' }}>Authentication Error</option>
+                  <option value="Performance Lag" style={{ color: 'black' }}>Performance Lag</option>
+                  <option value="Other" style={{ color: 'black' }}>Other Security Concern</option>
                 </select>
               </div>
               <div>
