@@ -1033,9 +1033,9 @@ const Home = () => {
                value={searchVal}
                onChange={(e) => setSearchVal(e.target.value)}
                placeholder="Analyze URL formats..." 
-               style={{ flex: 1, background: 'transparent', border: 'none', color: 'white', padding: '0.6rem 1rem', outline: 'none', fontSize: '1rem' }} 
+               style={{ flex: 1, minWidth: 0, background: 'transparent', border: 'none', color: 'white', padding: '0.6rem 1rem', outline: 'none', fontSize: '1rem' }} 
             />
-            <button disabled={isSearching} onClick={handleAnalyze} className="btn-primary" style={{ borderRadius: 'var(--radius-full)', padding: '0.5rem 1.5rem', fontSize: '0.9rem' }}>
+            <button disabled={isSearching} onClick={handleAnalyze} className="btn-primary home-search-btn" style={{ borderRadius: 'var(--radius-full)', padding: '0.5rem 1.5rem', fontSize: '0.9rem', width: 'auto', flexShrink: 0 }}>
               {isSearching ? <Activity size={16} className="animate-pulse-green" /> : 'Deep Analyze'}
             </button>
          </div>

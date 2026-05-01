@@ -616,6 +616,7 @@ p {
 
   /* Buttons: full width */
   .btn-primary, .btn-secondary { width: 100%; justify-content: center; }
+  .home-search-btn, .search-container .btn-primary { width: auto !important; }
 
   /* Stats row */
   .stats-header-row { flex-direction: column !important; align-items: flex-start !important; gap: 0.8rem !important; }
