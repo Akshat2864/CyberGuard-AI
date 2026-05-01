@@ -111,7 +111,7 @@ const InteractiveBackground = () => {
 const Dashboard = () => {
   const navigate = useNavigate();
   const location = useLocation();
-  const [activeTab, setActiveTab] = useState('url');
+  const [activeTab, setActiveTab] = useState('urgent');
   const [scanStatus, setScanStatus] = useState('idle');
   const [isSystemOffline, setIsSystemOffline] = useState(false);
   const [riskLevel, setRiskLevel] = useState('Malicious');
@@ -145,18 +145,19 @@ const Dashboard = () => {
     }
   };
 
-  useEffect(() => {
-    fetchAnalytics();
-    fetchHistory();
+    useEffect(() => {
+      fetchAnalytics();
+      fetchHistory();
 
-    // Handle auto-scan from Home Page redirect
-    const params = new URLSearchParams(location.search);
-    const urlToScan = params.get('url');
-    if (urlToScan) {
-      setUrlInput(urlToScan);
-      handleScan(urlToScan);
-    }
-  }, []);
+      // Handle auto-scan from Home Page redirect
+      const params = new URLSearchParams(location.search);
+      const urlToScan = params.get('url');
+      if (urlToScan) {
+        setActiveTab('urgent');
+        setUrlInput(urlToScan);
+        handleScan(urlToScan);
+      }
+    }, []);
 
   const fetchAnalytics = async () => {
     try {
@@ -273,7 +274,7 @@ const Dashboard = () => {
 
     setScanStatus('scanning');
     try {
-      const isBatch = activeTab === 'email';
+      const isBatch = targetUrl.includes(',') || activeTab === 'email';
       const endpoint = isBatch ? '/batch-analyze' : '/analyze';
       const payload = isBatch 
         ? { urls: targetUrl.split(',').map(u => u.trim()).filter(Boolean) }
