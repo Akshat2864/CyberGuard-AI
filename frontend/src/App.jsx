@@ -134,6 +134,8 @@ const Dashboard = () => {
   const [nodeStatus, setNodeStatus] = useState({ latency: null, pinging: false });
   const [showIdentityPanel, setShowIdentityPanel] = useState(false);
   const [threatHistory, setThreatHistory] = useState([]);
+  const [backendReady, setBackendReady] = useState(false);
+  const [backendWaking, setBackendWaking] = useState(false);
 
   const API_BASE_URL = (import.meta.env.VITE_API_URL && import.meta.env.VITE_API_URL !== "undefined") 
     ? import.meta.env.VITE_API_URL 
@@ -150,9 +152,32 @@ const Dashboard = () => {
     }
   };
 
+    // Wake up the Render backend and then fetch data
+    const wakeAndFetch = async () => {
+      setBackendWaking(true);
+      let attempts = 0;
+      const maxAttempts = 5;
+      while (attempts < maxAttempts) {
+        try {
+          const res = await fetch(`${API_BASE_URL}/`, { signal: AbortSignal.timeout(8000) });
+          if (res.ok) {
+            setBackendReady(true);
+            setBackendWaking(false);
+            fetchAnalytics();
+            fetchHistory();
+            break;
+          }
+        } catch (e) {
+          // backend still sleeping, retry
+        }
+        attempts++;
+        if (attempts < maxAttempts) await new Promise(r => setTimeout(r, 4000));
+      }
+      setBackendWaking(false);
+    };
+
     useEffect(() => {
-      fetchAnalytics();
-      fetchHistory();
+      wakeAndFetch();
 
       // Handle auto-scan from Home Page redirect
       const params = new URLSearchParams(location.search);
@@ -184,23 +209,37 @@ const Dashboard = () => {
       const contentType = response.headers.get("content-type");
       if (!contentType || !contentType.includes("application/json")) {
          console.warn("Backend still waking up or route missing.");
-         return; // Don't crash
+         return;
       }
 
       const data = await response.json();
       const historyList = Array.isArray(data) ? data : [];
-      const sliced = historyList.slice(0, 20);
+      const sliced = historyList.slice(0, 50);
       setHistoryData(sliced);
 
+      // Group by DATE (not time) so each day = one bar on the graph
       const grouped = {};
       sliced.forEach(entry => {
         if (!entry) return;
-        const t = entry.created_at ? new Date(entry.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : 'Now';
-        if (!grouped[t]) grouped[t] = { time: t, Safe: 0, Suspicious: 0, Malicious: 0 };
+        let label;
+        if (entry.created_at) {
+          const d = new Date(entry.created_at);
+          const today = new Date();
+          const diffDays = Math.floor((today - d) / 86400000);
+          if (diffDays === 0) label = 'Today';
+          else if (diffDays === 1) label = 'Yesterday';
+          else label = d.toLocaleDateString([], { month: 'short', day: 'numeric' });
+        } else {
+          label = 'Today';
+        }
+        if (!grouped[label]) grouped[label] = { time: label, Safe: 0, Suspicious: 0, Malicious: 0, _ts: entry.created_at || new Date().toISOString() };
         const res = entry.result || 'Safe';
-        if (grouped[t].hasOwnProperty(res)) grouped[t][res]++;
+        if (grouped[label].hasOwnProperty(res)) grouped[label][res]++;
       });
-      setThreatHistory(Object.values(grouped).reverse());
+
+      // Sort chronologically oldest -> newest
+      const sorted = Object.values(grouped).sort((a, b) => new Date(a._ts) - new Date(b._ts));
+      setThreatHistory(sorted);
       setIsSystemOffline(false);
     } catch (error) {
       console.error('Error fetching history:', error);
@@ -988,7 +1027,15 @@ const Dashboard = () => {
             ))}
           </div>
         </div>
-        {threatHistory.length === 0 ? (
+        {backendWaking && threatHistory.length === 0 ? (
+          <div style={{ height: '180px', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: '0.8rem' }}>
+            <motion.div animate={{ rotate: 360 }} transition={{ duration: 2, repeat: Infinity, ease: 'linear' }}>
+              <Activity size={32} style={{ color: 'var(--accent-blue)', opacity: 0.7 }} />
+            </motion.div>
+            <p style={{ fontSize: '0.85rem', opacity: 0.6 }}>Connecting to intelligence nodes — waking up backend server...</p>
+            <p style={{ fontSize: '0.72rem', opacity: 0.35 }}>Render free-tier backend may take up to 30 seconds on first load.</p>
+          </div>
+        ) : threatHistory.length === 0 ? (
           <div style={{ height: '180px', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', opacity: 0.4, gap: '0.5rem' }}>
             <BarChart3 size={32} />
             <p style={{ fontSize: '0.85rem' }}>No scan data yet — run a scan to populate the graph.</p>
@@ -1072,10 +1119,13 @@ const Dashboard = () => {
             )}
           </div>
           <div style={{ overflowY: 'auto', flex: 1, paddingRight: '0.5rem' }} className="custom-scrollbar">
-            {isDataLoading ? (
-               <SkeletonLoader type="row" count={5} />
+            {isDataLoading || backendWaking ? (
+               <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+                 <SkeletonLoader type="row" count={5} />
+                 {backendWaking && <p style={{ textAlign: 'center', fontSize: '0.75rem', opacity: 0.4, marginTop: '0.5rem' }}>⏳ Backend waking up — this may take up to 30 seconds...</p>}
+               </div>
             ) : historyData.length === 0 ? (
-               <div style={{ padding: '2rem', textAlign: 'center', opacity: 0.5 }}>No logs recorded yet.</div>
+               <div style={{ padding: '2rem', textAlign: 'center', opacity: 0.5 }}>No logs recorded yet. Run a scan to generate forensic data.</div>
             ) : (
                <div className="forensic-table-wrap"><table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', fontSize: '0.85rem' }}>
                  <thead style={{ position: 'sticky', top: 0, zIndex: 20, backgroundColor: 'var(--bg-card)' }}>
