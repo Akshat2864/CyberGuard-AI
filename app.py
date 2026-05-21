@@ -939,6 +939,17 @@ def check_email():
         }
 
         update_analytics(res_type)
+        
+        log_entry = {
+            "url": f"Identity Check: {email}",
+            "result": res_type,
+            "confidence": 100 if num_leaks > 0 else 98,
+            "risk_score": risk_score,
+            "threat_type": "Data Breach",
+            "created_at": datetime.now().isoformat()
+        }
+        LOCAL_HISTORY.insert(0, log_entry)
+
         try:
             supabase.table("url_scans").insert({
                 "url": f"Identity Check: {email}",
@@ -1000,13 +1011,25 @@ def scan_darkweb():
             res_type = "Malicious" if risk_score > 75 else "Suspicious"
             
         # Record to history
+        log_entry = {
+            "url": f"Dark Web: {query}",
+            "result": res_type,
+            "confidence": 95 if is_leaked else 90,
+            "risk_score": risk_score,
+            "threat_type": "Dark Web Exposure",
+            "created_at": datetime.now().isoformat()
+        }
+        LOCAL_HISTORY.insert(0, log_entry)
+
         if supabase:
             try:
-                supabase.table('scan_history').insert({
-                    "target": f"Dark Web: {query}",
-                    "scan_type": "Dark Web Monitor",
+                supabase.table('url_scans').insert({
+                    "url": f"Dark Web: {query}",
+                    "result": res_type,
+                    "confidence": 95 if is_leaked else 90,
                     "risk_score": risk_score,
-                    "result": res_type
+                    "threat_type": "Dark Web Exposure",
+                    "user_id": "operator_forensics"
                 }).execute()
             except: pass
 

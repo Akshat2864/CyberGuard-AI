@@ -353,20 +353,22 @@ const Dashboard = () => {
         if (isBatch && data.results) {
           const batchEntries = data.results.filter(r => r.valid).map(r => ({
             url: r.url, result: r.result, confidence: r.confidence,
-            risk_score: r.risk_score, created_at: new Date().toISOString()
+            risk_score: r.risk_score, created_at: new Date().toISOString(),
+            threat_type: Array.isArray(r.threat_type) ? r.threat_type.join(", ") : (r.threat_type || 'None')
           }));
-          setHistoryData(prev => [...batchEntries, ...prev].slice(0, 20));
+          setHistoryData(prev => [...batchEntries, ...prev].slice(0, 50));
         } else if (data.url) {
           setHistoryData(prev => [{
             url: data.url, result: data.result, confidence: data.confidence,
-            risk_score: data.risk_score, created_at: new Date().toISOString()
-          }, ...prev].slice(0, 20));
-          // Sync threat history graph
-          const t = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+            risk_score: data.risk_score, created_at: new Date().toISOString(),
+            threat_type: data.threat_type || (data.result === 'Safe' ? 'None' : 'Heuristic')
+          }, ...prev].slice(0, 50));
+          // Sync threat history graph (grouped by 'Today' label)
+          const tLabel = 'Today';
           setThreatHistory(prev => {
-            const existing = prev.find(p => p.time === t);
-            if (existing) return prev.map(p => p.time === t ? { ...p, [data.result]: (p[data.result] || 0) + 1 } : p);
-            return [...prev, { time: t, Safe: data.result === 'Safe' ? 1 : 0, Suspicious: data.result === 'Suspicious' ? 1 : 0, Malicious: data.result === 'Malicious' ? 1 : 0 }].slice(-10);
+            const existing = prev.find(p => p.time === tLabel);
+            if (existing) return prev.map(p => p.time === tLabel ? { ...p, [data.result]: (p[data.result] || 0) + 1, _ts: new Date().toISOString() } : p);
+            return [...prev, { time: tLabel, Safe: data.result === 'Safe' ? 1 : 0, Suspicious: data.result === 'Suspicious' ? 1 : 0, Malicious: data.result === 'Malicious' ? 1 : 0, _ts: new Date().toISOString() }];
           });
         }
       } else {
@@ -437,7 +439,23 @@ const Dashboard = () => {
         if (data.updated_analytics) setAnalytics(data.updated_analytics);
         else fetchAnalytics();
         
-        // Refresh history to include new scan
+        // ⚡ Instant history update
+        setHistoryData(prev => [{
+          url: `Identity Check: ${emailToUse}`, result: data.result, 
+          confidence: data.risk_score > 0 ? 100 : 98,
+          risk_score: data.risk_score, created_at: new Date().toISOString(),
+          threat_type: "Data Breach"
+        }, ...prev].slice(0, 50));
+
+        // Sync threat history graph (grouped by 'Today' label)
+        const tLabel = 'Today';
+        setThreatHistory(prev => {
+          const existing = prev.find(p => p.time === tLabel);
+          if (existing) return prev.map(p => p.time === tLabel ? { ...p, [data.result]: (p[data.result] || 0) + 1, _ts: new Date().toISOString() } : p);
+          return [...prev, { time: tLabel, Safe: data.result === 'Safe' ? 1 : 0, Suspicious: data.result === 'Suspicious' ? 1 : 0, Malicious: data.result === 'Malicious' ? 1 : 0, _ts: new Date().toISOString() }];
+        });
+        
+        // Refresh history from backend
         fetchHistory();
       } else {
         alert('Email Check Error: ' + data.error);
@@ -472,16 +490,17 @@ const Dashboard = () => {
         
         // ⚡ Instant history update
         setHistoryData(prev => [{
-          target: `Dark Web: ${data.query}`, result: data.result, 
-          risk_score: data.risk_score, created_at: new Date().toISOString()
-        }, ...prev].slice(0, 20));
+          url: `Dark Web: ${data.query}`, result: data.result, 
+          risk_score: data.risk_score, created_at: new Date().toISOString(),
+          threat_type: "Dark Web Exposure"
+        }, ...prev].slice(0, 50));
 
-        // Sync threat history graph
-        const t = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+        // Sync threat history graph (grouped by 'Today' label)
+        const tLabel = 'Today';
         setThreatHistory(prev => {
-          const existing = prev.find(p => p.time === t);
-          if (existing) return prev.map(p => p.time === t ? { ...p, [data.result]: (p[data.result] || 0) + 1 } : p);
-          return [...prev, { time: t, Safe: data.result === 'Safe' ? 1 : 0, Suspicious: data.result === 'Suspicious' ? 1 : 0, Malicious: data.result === 'Malicious' ? 1 : 0 }].slice(-10);
+          const existing = prev.find(p => p.time === tLabel);
+          if (existing) return prev.map(p => p.time === tLabel ? { ...p, [data.result]: (p[data.result] || 0) + 1, _ts: new Date().toISOString() } : p);
+          return [...prev, { time: tLabel, Safe: data.result === 'Safe' ? 1 : 0, Suspicious: data.result === 'Suspicious' ? 1 : 0, Malicious: data.result === 'Malicious' ? 1 : 0, _ts: new Date().toISOString() }];
         });
         
         fetchHistory();
