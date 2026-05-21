@@ -1133,6 +1133,7 @@ const Dashboard = () => {
                      <th style={{ padding: '0.8rem 0.5rem', backgroundColor: 'var(--bg-card)' }}>ID</th>
                      <th style={{ padding: '0.8rem 0.5rem', backgroundColor: 'var(--bg-card)' }}>Time</th>
                      <th style={{ padding: '0.8rem 0.5rem', backgroundColor: 'var(--bg-card)' }}>Target</th>
+                     <th style={{ padding: '0.8rem 0.5rem', backgroundColor: 'var(--bg-card)' }}>Type</th>
                      <th style={{ padding: '0.8rem 0.5rem', backgroundColor: 'var(--bg-card)' }}>State</th>
                      <th style={{ padding: '0.8rem 0.5rem', backgroundColor: 'var(--bg-card)' }}>Confidence</th>
                      <th style={{ padding: '0.8rem 0.5rem', backgroundColor: 'var(--bg-card)', textAlign: 'right' }}>Action</th>
@@ -1150,6 +1151,7 @@ const Dashboard = () => {
                        <td style={{ padding: '0.8rem 0.5rem', color: 'var(--text-secondary)' }}>#{idx + 1}</td>
                        <td style={{ padding: '0.8rem 0.5rem', color: 'var(--accent-blue)' }}>{row.created_at ? new Date(row.created_at).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit', second:'2-digit'}) : 'Real-time'}</td>
                        <td style={{ padding: '0.8rem 0.5rem', fontFamily: 'monospace', color: '#fff', wordBreak: 'break-all' }}>{row.url || row.target}</td>
+                       <td style={{ padding: '0.8rem 0.5rem', color: '#888', fontSize: '0.75rem' }}>{row.threat_type || (row.url?.startsWith('Identity Check:') ? 'Email' : 'URL')}</td>
                        <td style={{ padding: '0.8rem 0.5rem', color: row.result === 'Safe' ? '#10b981' : row.result === 'Suspicious' ? '#f59e0b' : '#ef4444' }}>{row.result || row.status}</td>
                        <td style={{ padding: '0.8rem 0.5rem' }}>{row.confidence || row.confidence}%</td>
                        <td style={{ padding: '0.8rem 0.5rem', textAlign: 'right' }}>
